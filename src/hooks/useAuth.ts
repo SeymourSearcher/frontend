@@ -7,6 +7,7 @@ import { redirectToDiscord } from "@/lib/auth";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const loadUser = useCallback(async () => {
     const data = await fetchCurrentUser();
@@ -15,6 +16,7 @@ export function useAuth() {
     } else {
       clearToken();
     }
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -27,6 +29,8 @@ export function useAuth() {
         if (data) {
           setToken(data.access_token);
           loadUser();
+        } else {
+          setLoading(false);
         }
       });
     } else {
@@ -43,6 +47,6 @@ export function useAuth() {
     setUser(null);
   }
 
-  return { user, login, logout };
+  return { user, loading, login, logout };
 }
 

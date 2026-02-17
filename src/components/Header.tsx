@@ -15,7 +15,7 @@ const NAV_LINKS = [
 ];
 
 export default function Header() {
-  const { user, login, logout } = useAuth();
+  const { user, loading, login, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -80,7 +80,7 @@ export default function Header() {
             className="hidden"
             accept=".txt,.json"
           />
-          {user ? (
+          {!loading && (user ? (
             <>
               <span className="text-[#ccc] text-[14px]">{user.username}</span>
               <button
@@ -98,7 +98,7 @@ export default function Header() {
               <DiscordIcon />
               Login
             </button>
-          )}
+          ))}
         </div>
       </header>
 
@@ -137,7 +137,7 @@ export default function Header() {
         )}
 
         <div className="mt-auto mb-[65px]">
-          {user ? (
+          {!loading && (user ? (
             <>
               <span className="block text-[#ccc] text-[14px] p-[6px_10px]">{user.username}</span>
               <button
@@ -161,7 +161,7 @@ export default function Header() {
               <DiscordIcon />
               Login
             </button>
-          )}
+          ))}
         </div>
       </aside>
     </>
