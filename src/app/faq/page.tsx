@@ -185,7 +185,8 @@ const FAQ_DATA: FAQItem[] = [
           </div>
         </div>
         <p className="mt-4 text-[#888] text-[12px]">
-          This is what determines the tier of a Seymour piece when comparing to a target color.
+          This is what determines the tier of a Seymour piece when comparing to a target color. 
+          This site uses the <span className="text-[#5865F2]">CIE76</span> formula for Delta E calculations.
         </p>
       </>
     ),
