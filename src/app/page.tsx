@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useGlobalStats } from "@/hooks/useGlobalStats";
 import { StarIcon } from "@/components/icons/StarIcon";
 import { StatItem } from "@/components/StatItem";
@@ -8,11 +9,16 @@ import { StatItem } from "@/components/StatItem";
 export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const { stats } = useGlobalStats();
+  const router = useRouter();
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     if (searchQuery.trim()) {
-      console.log("Searching for:", searchQuery);
+      // Extract hex value - split at # and take the last part
+      const hexValue = searchQuery.trim().split("#").pop()?.toUpperCase() || "";
+      if (hexValue) {
+        router.push(`/hex/${hexValue}`);
+      }
     }
   }
 
