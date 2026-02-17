@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { fetchHexInfo, HexInfo, HexUser, HexMatch } from "@/lib/api";
+import { HexSearchInput } from "@/components/HexSearchInput";
 
 function Avatar({ user }: { user: HexUser }) {
   const defaultAvatarIndex = Number(BigInt(user.discord_id) >> BigInt(22)) % 6;
@@ -180,51 +181,9 @@ function MatchCard({ match, rank }: { match: HexMatch; rank: number }) {
   );
 }
 
-function HexSearch({ initialHex, onSearch }: { initialHex: string; onSearch: (hex: string) => void }) {
-  const [input, setInput] = useState(initialHex);
-  const [error, setError] = useState("");
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const cleaned = input.replace(/^#/, "").toUpperCase();
-    if (!/^[0-9A-F]{6}$/.test(cleaned)) {
-      setError("Invalid hex code");
-      return;
-    }
-    setError("");
-    onSearch(cleaned);
-  };
-
-  return (
-    <form onSubmit={handleSubmit} className="flex flex-col items-center gap-2 mb-6">
-      <div className="flex items-center gap-2">
-        <div
-          className="w-10 h-10 rounded border border-[#444]"
-          style={{ backgroundColor: /^[0-9A-Fa-f]{6}$/.test(input.replace(/^#/, "")) ? `#${input.replace(/^#/, "")}` : "#333" }}
-        />
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="FFFF00"
-          maxLength={7}
-          className="bg-[#222] text-[#f0f0f0] border border-[#444] rounded px-3 py-2 text-[14px] w-[120px] uppercase"
-        />
-        <button
-          type="submit"
-          className="bg-[#5865F2] text-white px-4 py-2 rounded text-[12px] border-none cursor-pointer hover:bg-[#4752C4] transition-colors"
-        >
-          Search
-        </button>
-      </div>
-      {error && <span className="text-red-400 text-[11px]">{error}</span>}
-    </form>
-  );
-}
 
 export default function HexPage() {
   const params = useParams();
-  const router = useRouter();
   const hexcode = (params.hexcode as string)?.toUpperCase() || "";
   
   const [hexInfo, setHexInfo] = useState<HexInfo | null>(null);
@@ -250,15 +209,19 @@ export default function HexPage() {
     });
   }, [hexcode]);
 
-  const handleSearch = (hex: string) => {
-    router.push(`/hex/${hex}`);
-  };
-
   return (
     <main className="min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif]">
       <h1 className="text-[1.5em] text-[#f0f0f0] mb-4 text-center">Hex Search</h1>
       
-      <HexSearch initialHex={hexcode} onSearch={handleSearch} />
+      <div className="mb-6">
+        <HexSearchInput
+          initialValue={hexcode}
+          showPreview
+          placeholder="FFFF00"
+          inputClassName="bg-[#222] text-[#f0f0f0] border border-[#444] rounded px-3 py-2 text-[14px] w-[120px] uppercase"
+          buttonClassName="bg-[#5865F2] text-white px-4 py-2 rounded text-[12px] border-none cursor-pointer hover:bg-[#4752C4] transition-colors"
+        />
+      </div>
 
       {loading ? (
         <p className="text-[#888] text-center">Loading...</p>
