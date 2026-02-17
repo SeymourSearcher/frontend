@@ -7,7 +7,7 @@
        url('/fonts/MinecraftSeven.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
-  font-display: swap;
+  font-display: block;
 }
 
 :root {
