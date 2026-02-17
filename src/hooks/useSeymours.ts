@@ -14,6 +14,7 @@ const FILTERS: { key: FilterType; label: string; hasSubFilter: boolean }[] = [
   { key: "dupes", label: "Dupes", hasSubFilter: false },
   { key: "sets", label: "Sets", hasSubFilter: true },
   { key: "dyes", label: "Dyes", hasSubFilter: true },
+  { key: "custom", label: "Custom", hasSubFilter: false },
 ];
 
 type GroupedSeymours = { [key: string]: Seymour[] };
@@ -33,7 +34,7 @@ export function useSeymours() {
 
   const currentFilterConfig = FILTERS.find(f => f.key === filter);
   const hasSubFilter = currentFilterConfig?.hasSubFilter ?? false;
-  const shouldGroup = filter === "sets" || filter === "dyes";
+  const shouldGroup = filter === "sets" || filter === "dyes" || filter === "custom";
   const canFilterIncomplete = filter === "sets" || filter === "dyes";
   const canIncludeDyes = filter === "t1" || filter === "t2" || filter === "t3";
 
@@ -123,6 +124,7 @@ export function useSeymours() {
       dupes: stats.dupes,
       sets: stats.total_sets,
       dyes: stats.dyed_sets,
+      custom: stats.custom_sets,
     };
     return statMap[key] ?? 0;
   }

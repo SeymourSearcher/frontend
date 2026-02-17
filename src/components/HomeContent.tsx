@@ -30,6 +30,7 @@ export function HomeContent({ stats }: HomeContentProps) {
           <StatItem label="Dupes" value={stats?.dupes ?? 0} />
           <StatItem label="Sets" value={stats?.total_sets ?? 0} />
           <StatItem label="Dyed" value={stats?.dyed_sets ?? 0} />
+          <StatItem label="Custom" value={stats?.custom_sets ?? 0} />
           <StatItem label="Total" value={stats?.total_seymours ?? 0} />
         </div>
       </div>

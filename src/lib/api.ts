@@ -74,6 +74,7 @@ export async function fetchUserStats() {
     dupes: number;
     total_sets: number;
     dyed_sets: number;
+    custom_sets: number;
     total_seymours: number;
   }>("/stats/me");
 }
@@ -126,6 +127,7 @@ export interface RankingUser {
   dupes: number;
   total_sets: number;
   dyed_sets: number;
+  custom_sets: number;
   total_seymours: number;
 }
 

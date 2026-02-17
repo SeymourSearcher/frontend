@@ -21,8 +21,9 @@ export type UserStats = {
   dupes: number;
   total_sets: number;
   dyed_sets: number;
+  custom_sets: number;
   total_seymours: number;
 };
 
-export type FilterType = "all" | "stars" | "t1" | "t2" | "t3" | "words" | "dupes" | "sets" | "dyes";
+export type FilterType = "all" | "stars" | "t1" | "t2" | "t3" | "words" | "dupes" | "sets" | "dyes" | "custom";
 

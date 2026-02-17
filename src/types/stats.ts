@@ -7,6 +7,7 @@ export interface GlobalStats {
   dupes: number;
   total_sets: number;
   dyed_sets: number;
+  custom_sets: number;
   total_seymours: number;
 }
 

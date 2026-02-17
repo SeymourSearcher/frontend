@@ -258,7 +258,7 @@ export default function ItemsPage() {
                   {!incompleteOnly && <MissingBadge pieces={missing} />}
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  {items.map((s) => <SeymourChip key={s.id} seymour={s} />)}
+                  {items.map((s, idx) => <SeymourChip key={`${groupName}-${idx}`} seymour={s} />)}
                   {incompleteOnly && missing.map((piece) => (
                     <MissingItem key={piece} pieceName={piece} hexColor={targetHex} />
                   ))}

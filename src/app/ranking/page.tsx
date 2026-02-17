@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { fetchRankings, RankingUser } from "@/lib/api";
 
-type SortKey = "total" | "t1" | "t2" | "t3" | "words" | "dupes" | "sets" | "dyed";
+type SortKey = "total" | "t1" | "t2" | "t3" | "words" | "dupes" | "sets" | "dyed" | "custom";
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "total", label: "Total" },
@@ -14,6 +14,7 @@ const SORT_OPTIONS: { key: SortKey; label: string }[] = [
   { key: "dupes", label: "Dupes" },
   { key: "sets", label: "Sets" },
   { key: "dyed", label: "Dyed" },
+  { key: "custom", label: "Custom" },
 ];
 
 function getStatValue(user: RankingUser, key: SortKey): number {
@@ -26,6 +27,7 @@ function getStatValue(user: RankingUser, key: SortKey): number {
     dupes: user.dupes,
     sets: user.total_sets,
     dyed: user.dyed_sets,
+    custom: user.custom_sets,
   };
   return map[key];
 }
@@ -100,7 +102,7 @@ export default function RankingPage() {
         <p className="text-[#888] text-center">No rankings available yet.</p>
       ) : (
         <div className="max-w-[900px] mx-auto">
-          <div className="hidden md:grid grid-cols-[40px_1fr_repeat(8,60px)] gap-2 px-4 py-2 text-[11px] text-[#666] border-b border-[#333]">
+          <div className="hidden md:grid grid-cols-[40px_1fr_repeat(9,60px)] gap-2 px-4 py-2 text-[11px] text-[#666] border-b border-[#333]">
             <span>#</span>
             <span>User</span>
             {SORT_OPTIONS.map((opt) => (
@@ -118,7 +120,7 @@ export default function RankingPage() {
             {sortedRankings.map((user, idx) => (
               <div
                 key={user.discord_id}
-                className="bg-[#1a1a1a] md:bg-transparent rounded-lg md:rounded-none p-4 md:p-0 md:grid md:grid-cols-[40px_1fr_repeat(8,60px)] md:gap-2 md:px-4 md:py-3 md:border-b md:border-[#222] md:hover:bg-[#1a1a1a] transition-colors"
+                className="bg-[#1a1a1a] md:bg-transparent rounded-lg md:rounded-none p-4 md:p-0 md:grid md:grid-cols-[40px_1fr_repeat(9,60px)] md:gap-2 md:px-4 md:py-3 md:border-b md:border-[#222] md:hover:bg-[#1a1a1a] transition-colors"
               >
                 <div className="flex items-center gap-3 mb-3 md:mb-0 md:contents">
                   <RankBadge rank={idx + 1} />
