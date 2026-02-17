@@ -1,42 +1,47 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import Link from "next/link";
 import { useSeymours } from "@/hooks/useSeymours";
 import { Seymour } from "@/types/seymour";
 
 function SeymourCard({ seymour }: { seymour: Seymour }) {
   return (
-    <div className="bg-[#1a1a1a] rounded-lg p-3 flex flex-col items-center">
-      <div
-        className="w-10 h-10 rounded mb-2"
-        style={{ backgroundColor: `#${seymour.hex_color}` }}
-      />
-      <span className="text-[11px] mb-1 font-bold" style={{ color: `#${seymour.hex_color}` }}>
-        #{seymour.hex_color}
-      </span>
-      <span className="text-[#888] text-[9px] mb-1">{seymour.item_name}</span>
-      {seymour.match && (
-        <div className="text-center mt-1">
-          <span className="text-[#5865F2] text-[9px] block">{seymour.match.target_name}</span>
-          <span className="text-[#666] text-[8px]">ΔE: {seymour.match.delta_e}</span>
-        </div>
-      )}
-    </div>
+    <Link href={`/hex/${seymour.hex_color}`} className="block">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 flex flex-col items-center hover:bg-[#252525] transition-colors cursor-pointer">
+        <div
+          className="w-10 h-10 rounded mb-2"
+          style={{ backgroundColor: `#${seymour.hex_color}` }}
+        />
+        <span className="text-[11px] mb-1 font-bold" style={{ color: `#${seymour.hex_color}` }}>
+          #{seymour.hex_color}
+        </span>
+        <span className="text-[#888] text-[9px] mb-1">{seymour.item_name}</span>
+        {seymour.match && (
+          <div className="text-center mt-1">
+            <span className="text-[#5865F2] text-[9px] block">{seymour.match.target_name}</span>
+            <span className="text-[#666] text-[8px]">ΔE: {seymour.match.delta_e}</span>
+          </div>
+        )}
+      </div>
+    </Link>
   );
 }
 
 function SeymourChip({ seymour }: { seymour: Seymour }) {
   return (
-    <div className="flex items-center gap-2 bg-[#252525] rounded px-3 py-2">
-      <div className="w-6 h-6 rounded" style={{ backgroundColor: `#${seymour.hex_color}` }} />
-      <div className="flex flex-col">
-        <span className="text-[11px] font-bold" style={{ color: `#${seymour.hex_color}` }}>
-          #{seymour.hex_color}
-        </span>
-        <span className="text-[#888] text-[9px]">{seymour.item_name}</span>
-        {seymour.match && <span className="text-[#666] text-[8px]">ΔE: {seymour.match.delta_e}</span>}
+    <Link href={`/hex/${seymour.hex_color}`} className="block">
+      <div className="flex items-center gap-2 bg-[#252525] rounded px-3 py-2 hover:bg-[#333] transition-colors cursor-pointer">
+        <div className="w-6 h-6 rounded" style={{ backgroundColor: `#${seymour.hex_color}` }} />
+        <div className="flex flex-col">
+          <span className="text-[11px] font-bold" style={{ color: `#${seymour.hex_color}` }}>
+            #{seymour.hex_color}
+          </span>
+          <span className="text-[#888] text-[9px]">{seymour.item_name}</span>
+          {seymour.match && <span className="text-[#666] text-[8px]">ΔE: {seymour.match.delta_e}</span>}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

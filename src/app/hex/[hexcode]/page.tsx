@@ -30,7 +30,7 @@ const TIER_CONFIG = {
 };
 
 function TierSection({ tier, users }: { tier: string; users: HexUser[] }) {
-  const [expanded, setExpanded] = useState(true);
+  const [expanded, setExpanded] = useState(false);
   const config = TIER_CONFIG[tier as keyof typeof TIER_CONFIG];
 
   if (users.length === 0) return null;
