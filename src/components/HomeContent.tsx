@@ -16,8 +16,9 @@ export function HomeContent({ stats }: HomeContentProps) {
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
-    if (searchQuery.trim()) {
-      const hexValue = searchQuery.trim().split("#").pop()?.toUpperCase() || "";
+    const trimmed = searchQuery.trim();
+    if (trimmed) {
+      const hexValue = trimmed.split("#").pop()?.trim().toUpperCase() || "";
       if (hexValue) {
         router.push(`/hex/${hexValue}`);
       }
