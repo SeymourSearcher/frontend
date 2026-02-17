@@ -5,7 +5,7 @@ import { fetchUserSeymours, fetchUserStats, fetchAvailableFilters } from "@/lib/
 import { Seymour, UserStats, FilterType } from "@/types/seymour";
 
 const FILTERS: { key: FilterType; label: string; hasSubFilter: boolean }[] = [
-  { key: "all", label: "All", hasSubFilter: false },
+  { key: "all", label: "All", hasSubFilter: true },
   { key: "stars", label: "Stars", hasSubFilter: false },
   { key: "t1", label: "T1", hasSubFilter: true },
   { key: "t2", label: "T2", hasSubFilter: true },
@@ -17,20 +17,46 @@ const FILTERS: { key: FilterType; label: string; hasSubFilter: boolean }[] = [
 ];
 
 type GroupedSeymours = { [key: string]: Seymour[] };
+type SortDirection = "asc" | "desc";
 
 export function useSeymours() {
   const [seymours, setSeymours] = useState<Seymour[]>([]);
   const [stats, setStats] = useState<UserStats | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
-  const [subFilter, setSubFilter] = useState<string>("");
+  const [selectedSubFilters, setSelectedSubFilters] = useState<string[]>([]);
+  const [allSelected, setAllSelected] = useState(true);
   const [availableSubFilters, setAvailableSubFilters] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [incompleteOnly, setIncompleteOnly] = useState(false);
+  const [includeDyes, setIncludeDyes] = useState(false);
+  const [sortDirection, setSortDirection] = useState<SortDirection | null>(null);
 
   const currentFilterConfig = FILTERS.find(f => f.key === filter);
   const hasSubFilter = currentFilterConfig?.hasSubFilter ?? false;
   const shouldGroup = filter === "sets" || filter === "dyes";
   const canFilterIncomplete = filter === "sets" || filter === "dyes";
+  const canIncludeDyes = filter === "t1" || filter === "t2" || filter === "t3";
+
+  const subFilterParam = useMemo(() => {
+    if (allSelected || selectedSubFilters.length === 0) return undefined;
+    return selectedSubFilters.join(",");
+  }, [allSelected, selectedSubFilters]);
+
+  const toggleAllSelected = () => {
+    setAllSelected(prev => !prev);
+    if (!allSelected) {
+      setSelectedSubFilters([]);
+    }
+  };
+
+  const toggleSubFilter = (value: string) => {
+    setSelectedSubFilters(prev => {
+      if (prev.includes(value)) {
+        return prev.filter(v => v !== value);
+      }
+      return [...prev, value];
+    });
+  };
 
   useEffect(() => {
     fetchUserStats().then((data) => {
@@ -40,40 +66,51 @@ export function useSeymours() {
 
   useEffect(() => {
     if (hasSubFilter) {
-      fetchAvailableFilters(filter, incompleteOnly).then((data) => {
+      fetchAvailableFilters(filter, incompleteOnly, includeDyes).then((data) => {
         const newFilters = data || [];
         setAvailableSubFilters(newFilters);
-        if (subFilter && !newFilters.includes(subFilter)) {
-          setSubFilter("");
-        }
+        setSelectedSubFilters(prev => prev.filter(v => newFilters.includes(v)));
       });
     } else {
       setAvailableSubFilters([]);
-      setSubFilter("");
+      setSelectedSubFilters([]);
     }
-  }, [filter, hasSubFilter, incompleteOnly]);
+    setAllSelected(true);
+  }, [filter, hasSubFilter, incompleteOnly, includeDyes]);
 
   useEffect(() => {
     setLoading(true);
-    fetchUserSeymours(filter, subFilter || undefined, 0, 500, incompleteOnly).then((data) => {
+    fetchUserSeymours(filter, subFilterParam, 0, 500, incompleteOnly, includeDyes, sortDirection || undefined).then((data) => {
       setSeymours(data || []);
       setLoading(false);
     });
-  }, [filter, subFilter, incompleteOnly]);
+  }, [filter, subFilterParam, incompleteOnly, includeDyes, sortDirection]);
 
-  // Group by set name (e.g., "Strong Dragon") showing all pieces
   const groupedSeymours = useMemo<GroupedSeymours>(() => {
     if (!shouldGroup) return { "": seymours };
     
     const groups: GroupedSeymours = {};
+    const groupOrder: string[] = [];
     for (const s of seymours) {
-      // Extract base set name (e.g., "Strong Dragon" from "Strong Dragon Chestplate")
       const setName = s.match?.target_name || "Unknown";
-      if (!groups[setName]) groups[setName] = [];
+      if (!groups[setName]) {
+        groups[setName] = [];
+        groupOrder.push(setName);
+      }
       groups[setName].push(s);
     }
-    return groups;
+    const orderedGroups: GroupedSeymours = {};
+    for (const name of groupOrder) {
+      orderedGroups[name] = groups[name];
+    }
+    return orderedGroups;
   }, [seymours, shouldGroup]);
+
+  const getGroupAverage = (items: Seymour[]): number => {
+    const deltas = items.map(s => s.match?.delta_e).filter((d): d is number => d !== undefined);
+    if (deltas.length === 0) return Infinity;
+    return deltas.reduce((sum, d) => sum + d, 0) / deltas.length;
+  };
 
   function getStatCount(key: FilterType): number {
     if (!stats || key === "all") return 0;
@@ -93,16 +130,27 @@ export function useSeymours() {
   function getSubFilterLabel(): string {
     if (filter === "sets") return "Sets";
     if (filter === "dyes") return "Dyes";
-    return "Items";
+    if (filter === "t1" || filter === "t2" || filter === "t3") return "Items";
+    return "Sets";
   }
+
+  const toggleSort = () => {
+    setSortDirection(prev => {
+      if (prev === null) return "asc";
+      if (prev === "asc") return "desc";
+      return null;
+    });
+  };
 
   return {
     seymours,
     stats,
     filter,
     setFilter,
-    subFilter,
-    setSubFilter,
+    selectedSubFilters,
+    toggleSubFilter,
+    allSelected,
+    toggleAllSelected,
     availableSubFilters,
     loading,
     hasSubFilter,
@@ -110,9 +158,15 @@ export function useSeymours() {
     groupedSeymours,
     getStatCount,
     getSubFilterLabel,
+    getGroupAverage,
     FILTERS,
     incompleteOnly,
     setIncompleteOnly,
     canFilterIncomplete,
+    includeDyes,
+    setIncludeDyes,
+    canIncludeDyes,
+    sortDirection,
+    toggleSort,
   };
 }

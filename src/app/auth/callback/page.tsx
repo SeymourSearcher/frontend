@@ -25,7 +25,7 @@ export default function AuthCallback() {
       })
       .then(data => {
         localStorage.setItem('token', data.access_token);
-        router.push('/dashboard');
+        router.push('/items');
       })
       .catch(() => {
         router.push('/?error=auth_failed');

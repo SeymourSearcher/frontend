@@ -78,7 +78,7 @@ export async function fetchUserStats() {
   }>("/stats/me");
 }
 
-export async function fetchUserSeymours(filter?: string, subFilter?: string, skip = 0, limit = 100, incompleteOnly = false) {
+export async function fetchUserSeymours(filter?: string, subFilter?: string, skip = 0, limit = 100, incompleteOnly = false, includeDyes = false, sort?: string) {
   const params = new URLSearchParams({ skip: String(skip), limit: String(limit) });
   if (filter && filter !== "all") {
     params.set("filter", filter);
@@ -89,6 +89,12 @@ export async function fetchUserSeymours(filter?: string, subFilter?: string, ski
   if (incompleteOnly) {
     params.set("incomplete_only", "true");
   }
+  if (includeDyes) {
+    params.set("include_dyes", "true");
+  }
+  if (sort) {
+    params.set("sort", sort);
+  }
   return request<{
     id: number;
     item_name: string;
@@ -97,11 +103,65 @@ export async function fetchUserSeymours(filter?: string, subFilter?: string, ski
   }[]>(`/seymours/?${params}`);
 }
 
-export async function fetchAvailableFilters(filter: string, incompleteOnly = false) {
+export async function fetchAvailableFilters(filter: string, incompleteOnly = false, includeDyes = false) {
   const params = new URLSearchParams({ filter });
   if (incompleteOnly) {
     params.set("incomplete_only", "true");
   }
+  if (includeDyes) {
+    params.set("include_dyes", "true");
+  }
   return request<string[]>(`/seymours/available-filters?${params}`);
+}
+
+export interface RankingUser {
+  discord_id: number;
+  username: string;
+  avatar_hash: string | null;
+  stars: number;
+  t1: number;
+  t2: number;
+  t3: number;
+  words: number;
+  dupes: number;
+  total_sets: number;
+  dyed_sets: number;
+  total_seymours: number;
+}
+
+export async function fetchRankings() {
+  const res = await fetch(`${API_URL}/stats/rankings`);
+  if (!res.ok) return null;
+  return res.json() as Promise<RankingUser[]>;
+}
+
+export interface HexUser {
+  discord_id: number;
+  username: string;
+  avatar_hash: string | null;
+  delta_e: number;
+}
+
+export interface HexMatch {
+  item_name: string;
+  target_hex: string;
+  delta_e: number;
+  pieces: string[];
+  users_by_tier: {
+    t1: HexUser[];
+    t2: HexUser[];
+    t3: HexUser[];
+  };
+}
+
+export interface HexInfo {
+  hex_code: string;
+  top_matches: HexMatch[];
+}
+
+export async function fetchHexInfo(hexCode: string): Promise<HexInfo | null> {
+  const res = await fetch(`${API_URL}/hex/${hexCode}`);
+  if (!res.ok) return null;
+  return res.json();
 }
 

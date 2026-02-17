@@ -10,7 +10,7 @@ const NAV_LINKS = [
   { href: "/", label: "Home", external: false },
   { href: "/items", label: "Items", external: false },
   { href: "/ranking", label: "Ranking", external: false },
-  { href: "https://discord.gg/TSyX39nPrn", label: "Discord", external: true },
+  { href: "https://discord.gg/ecUT2vfaX5", label: "Discord", external: true },
   { href: "/faq", label: "FAQ", external: false },
 ];
 
