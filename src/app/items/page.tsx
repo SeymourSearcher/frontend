@@ -80,6 +80,8 @@ interface MultiSelectDropdownProps {
 function MultiSelectDropdown({ options, selected, allSelected, onToggleAll, onToggleOption, label }: MultiSelectDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const optionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -90,6 +92,33 @@ function MultiSelectDropdown({ options, selected, allSelected, onToggleAll, onTo
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    
+    let searchBuffer = "";
+    let resetTimeout: NodeJS.Timeout;
+    
+    function handleKeyDown(e: KeyboardEvent) {
+      const key = e.key.toLowerCase();
+      if (key.length !== 1 || !key.match(/[a-z0-9 ]/)) return;
+      
+      clearTimeout(resetTimeout);
+      searchBuffer += key;
+      resetTimeout = setTimeout(() => { searchBuffer = ""; }, 1000);
+      
+      const match = options.find((opt) => opt.toLowerCase().startsWith(searchBuffer));
+      if (match) {
+        optionRefs.current.get(match)?.scrollIntoView({ block: "nearest" });
+      }
+    }
+    
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      clearTimeout(resetTimeout);
+    };
+  }, [isOpen, options]);
 
   const getButtonLabel = () => {
     if (allSelected) return `All ${label}`;
@@ -116,7 +145,7 @@ function MultiSelectDropdown({ options, selected, allSelected, onToggleAll, onTo
         <span className={`transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
       </button>
       {isOpen && (
-        <div className="absolute top-full left-0 mt-1 bg-[#222] border border-[#444] rounded shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto">
+        <div ref={listRef} className="absolute top-full left-0 mt-1 bg-[#222] border border-[#444] rounded shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto">
           <button
             type="button"
             onClick={onToggleAll}
@@ -129,6 +158,7 @@ function MultiSelectDropdown({ options, selected, allSelected, onToggleAll, onTo
           {options.map((option) => (
             <div
               key={option}
+              ref={(el) => { if (el) optionRefs.current.set(option, el); }}
               onClick={() => handleOptionClick(option)}
               className="flex items-center gap-2 px-3 py-2 text-[12px] cursor-pointer transition-colors hover:bg-[#333]"
             >
