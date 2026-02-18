@@ -132,7 +132,7 @@ export function useSeymours() {
   function getSubFilterLabel(): string {
     if (filter === "sets") return "Sets";
     if (filter === "dyes") return "Dyes";
-    if (filter === "t1" || filter === "t2" || filter === "t3") return "Items";
+    if (filter === "all" || filter === "t1" || filter === "t2" || filter === "t3") return "Items";
     return "Sets";
   }
 
