@@ -161,8 +161,9 @@ export interface HexInfo {
   top_matches: HexMatch[];
 }
 
-export async function fetchHexInfo(hexCode: string): Promise<HexInfo | null> {
-  const res = await fetch(`${API_URL}/hex/${hexCode}`);
+export async function fetchHexInfo(hexCode: string, includeDyes: boolean = false): Promise<HexInfo | null> {
+  const params = includeDyes ? '?include_dyes=true' : '';
+  const res = await fetch(`${API_URL}/hex/${hexCode}${params}`);
   if (!res.ok) return null;
   return res.json();
 }

@@ -189,6 +189,7 @@ export default function HexPage() {
   const [hexInfo, setHexInfo] = useState<HexInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [includeDyes, setIncludeDyes] = useState(false);
 
   useEffect(() => {
     if (!hexcode || !/^[0-9A-F]{6}$/.test(hexcode)) {
@@ -199,7 +200,7 @@ export default function HexPage() {
 
     setLoading(true);
     setError("");
-    fetchHexInfo(hexcode).then((data) => {
+    fetchHexInfo(hexcode, includeDyes).then((data) => {
       if (data) {
         setHexInfo(data);
       } else {
@@ -207,7 +208,7 @@ export default function HexPage() {
       }
       setLoading(false);
     });
-  }, [hexcode]);
+  }, [hexcode, includeDyes]);
 
   return (
     <main className="min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif]">
@@ -217,10 +218,21 @@ export default function HexPage() {
         <HexSearchInput
           initialValue={hexcode}
           showPreview
+          colorizeInput
           placeholder="FFFF00"
-          inputClassName="bg-[#222] text-[#f0f0f0] border border-[#444] rounded px-3 py-2 text-[14px] w-[120px] uppercase"
+          inputClassName="bg-[#222] border border-[#444] rounded px-3 py-2 text-[14px] w-[120px] uppercase font-bold"
           buttonClassName="bg-[#5865F2] text-white px-4 py-2 rounded text-[12px] border-none cursor-pointer hover:bg-[#4752C4] transition-colors"
-        />
+        >
+          <label className="flex items-center gap-2 text-[12px] text-[#888] cursor-pointer">
+            <input
+              type="checkbox"
+              checked={includeDyes}
+              onChange={(e) => setIncludeDyes(e.target.checked)}
+              className="w-4 h-4 accent-[#5865F2]"
+            />
+            Include Dyes
+          </label>
+        </HexSearchInput>
       </div>
 
       {loading ? (
@@ -229,18 +241,6 @@ export default function HexPage() {
         <p className="text-red-400 text-center">{error}</p>
       ) : hexInfo && hexInfo.top_matches.length > 0 ? (
         <div className="max-w-[1100px] mx-auto">
-          <div className="flex items-center justify-center gap-3 mb-6">
-            <div
-              className="w-12 h-12 rounded"
-              style={{ backgroundColor: `#${hexInfo.hex_code}` }}
-            />
-            <div>
-              <span className="text-[16px] font-bold" style={{ color: `#${hexInfo.hex_code}` }}>
-                #{hexInfo.hex_code}
-              </span>
-            </div>
-          </div>
-
           <div className="flex gap-6">
             <div className="w-[280px] shrink-0">
               <ClosestMatchSidebar match={hexInfo.top_matches[0]} searchHex={hexInfo.hex_code} />
