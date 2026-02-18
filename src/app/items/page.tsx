@@ -192,7 +192,7 @@ export default function ItemsPage() {
             }`}
           >
             {f.label}
-            {stats && f.key !== "all" && <span className="ml-1 opacity-70">({getStatCount(f.key)})</span>}
+            {stats && f.key !== "all" && f.key !== "custom" && <span className="ml-1 opacity-70">({getStatCount(f.key)})</span>}
           </button>
         ))}
         {canFilterIncomplete && (
