@@ -53,6 +53,7 @@ export async function exchangeCode(code: string) {
 }
 
 export async function fetchCurrentUser() {
+  if (!getToken()) return null;
   return request<{ discord_id: string; username: string; avatar_hash: string | null }>("/auth/me");
 }
 

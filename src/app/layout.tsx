@@ -43,6 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <script src="/tt-policy.js" />
         <link
           rel="preload"
           href="/fonts/MinecraftSeven.woff2"
