@@ -2,9 +2,7 @@
 
 @font-face {
   font-family: 'MinecraftSeven';
-  src: url('/fonts/MinecraftSeven.woff2') format('woff2'),
-       url('/fonts/MinecraftSeven.woff') format('woff'),
-       url('/fonts/MinecraftSeven.ttf') format('truetype');
+  src: url('/fonts/MinecraftSeven.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: block;
