@@ -1,35 +1,38 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Header from "@/components/Header";
+import { WebsiteJsonLd, OrganizationJsonLd } from "@/components/seo";
+import { siteConfig } from "@/lib/seo";
 
 export const metadata: Metadata = {
   title: {
-    default: "Seymour Searcher",
-    template: "%s | Seymour Searcher",
+    default: siteConfig.name,
+    template: `%s | ${siteConfig.name}`,
   },
-  description: "Search and discover Seymours with advanced filtering and statistics. Find your perfect Seymour match.",
-  keywords: ["Seymour", "Seymour Cafe", "search", "finder", "collector"],
-  authors: [{ name: "Seymour Searcher" }],
+  description: siteConfig.description,
+  keywords: siteConfig.keywords,
+  authors: [{ name: siteConfig.author }],
   openGraph: {
-    title: "Seymour Searcher",
-    description: "Search and discover Seymours with advanced filtering and statistics.",
-    url: "/",
-    siteName: "Seymour Searcher",
-    images: [{ url: "/seymourcafe-logo.webp", width: 512, height: 512, alt: "Seymour Searcher Logo" }],
+    title: siteConfig.name,
+    description: siteConfig.description,
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    images: [{ url: siteConfig.ogImage, width: 512, height: 512, alt: `${siteConfig.name} Logo` }],
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary",
-    title: "Seymour Searcher",
-    description: "Search and discover Seymours with advanced filtering and statistics.",
-    images: ["/seymourcafe-logo.webp"],
+    title: siteConfig.name,
+    description: siteConfig.description,
+    images: [siteConfig.ogImage],
   },
   icons: {
-    icon: "/seymourcafe-logo.webp",
-    apple: "/seymourcafe-logo.webp",
+    icon: siteConfig.ogImage,
+    apple: siteConfig.ogImage,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"),
+  manifest: "/manifest.json",
+  metadataBase: new URL(siteConfig.url),
 };
 
 export default function RootLayout({
@@ -47,6 +50,8 @@ export default function RootLayout({
           type="font/woff2"
           crossOrigin="anonymous"
         />
+        <WebsiteJsonLd />
+        <OrganizationJsonLd />
       </head>
       <body>
         <Header />

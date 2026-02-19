@@ -1,0 +1,17 @@
+{
+  "name": "Seymour Searcher",
+  "short_name": "Seymour",
+  "description": "Search and discover Seymours with advanced filtering and statistics",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#121212",
+  "theme_color": "#5865F2",
+  "icons": [
+    {
+      "src": "/seymourcafe-logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    }
+  ]
+}

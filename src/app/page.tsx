@@ -1,5 +1,8 @@
 import { GlobalStats } from "@/types/stats";
 import { HomeContent } from "@/components/HomeContent";
+import { pageMetadata } from "@/lib/seo";
+
+export const metadata = pageMetadata.home;
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
