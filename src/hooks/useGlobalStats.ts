@@ -9,7 +9,7 @@ export function useGlobalStats() {
   useEffect(() => {
     fetchGlobalStats()
       .then(setStats)
-      .catch(console.error)
+      .catch(() => { setStats(null); })
       .finally(() => setLoading(false));
   }, []);
 
