@@ -26,7 +26,7 @@ export default function BuyOrdersGrid({
       return <p className="text-[#888] text-center">No orders match your Seymours.</p>;
     }
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-fr">
         {fillableOrders.map((fillable) => (
           <FillableOrderCard key={fillable.order.id} fillable={fillable} />
         ))}
@@ -48,7 +48,7 @@ export default function BuyOrdersGrid({
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 auto-rows-fr">
       {displayOrders.map((order) => (
         <OrderCard
           key={order.id}

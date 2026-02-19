@@ -32,7 +32,7 @@ function CriteriaDisplay({ order }: { order: BuyOrder }) {
     const { set_name, piece_types, tier } = order.set_criteria;
     const pieceNames = piece_types.map((pt) => PIECE_NAMES[pt]).join(", ");
     return (
-      <div className="flex flex-col min-w-0">
+      <div className="flex flex-col min-w-0 h-[42px]">
         <span className="text-[12px] font-bold text-purple-300 truncate">{set_name}</span>
         <span className="text-[#888] text-[10px] truncate">{pieceNames}</span>
         <span className="text-[#666] text-[9px]">Tier: {tier.toUpperCase()}</span>
@@ -43,7 +43,7 @@ function CriteriaDisplay({ order }: { order: BuyOrder }) {
   if (!isSetPiece && order.hex_criteria) {
     const { hex_value, match_type, max_delta_e, piece_type } = order.hex_criteria;
     return (
-      <div className="flex flex-col min-w-0">
+      <div className="flex flex-col min-w-0 h-[42px]">
         <span className="text-[12px] font-bold truncate" style={{ color: `#${hex_value}` }}>
           #{hex_value}
         </span>
@@ -66,7 +66,7 @@ export default function OrderCard({ order, isOwn, onCancel }: OrderCardProps) {
   const hexValue = order.hex_criteria?.hex_value;
 
   return (
-    <div className="bg-[#1a1a1a] rounded-lg p-4 hover:bg-[#252525] transition-colors relative">
+    <div className="bg-[#1a1a1a] rounded-lg p-4 hover:bg-[#252525] transition-colors relative flex flex-col h-full">
       {isOwn && !isActive && (
         <span
           className={`absolute top-2 right-2 px-2 py-0.5 rounded text-[9px] font-bold ${
@@ -79,7 +79,7 @@ export default function OrderCard({ order, isOwn, onCancel }: OrderCardProps) {
         </span>
       )}
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 flex-1">
         <div
           className="w-12 h-12 rounded-md shrink-0 flex items-center justify-center"
           style={{
