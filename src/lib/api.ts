@@ -53,7 +53,7 @@ export async function exchangeCode(code: string) {
 }
 
 export async function fetchCurrentUser() {
-  return request<{ discord_id: number; username: string; avatar_hash: string | null }>("/auth/me");
+  return request<{ discord_id: string; username: string; avatar_hash: string | null }>("/auth/me");
 }
 
 export async function uploadSeymours(file: File) {
@@ -131,7 +131,7 @@ export async function fetchAvailableFilters(filter: string, incompleteOnly = fal
 }
 
 export interface RankingUser {
-  discord_id: number;
+  discord_id: string;
   username: string;
   avatar_hash: string | null;
   stars: number;
@@ -153,7 +153,7 @@ export async function fetchRankings() {
 }
 
 export interface HexUser {
-  discord_id: number;
+  discord_id: string;
   username: string;
   avatar_hash: string | null;
   delta_e: number;

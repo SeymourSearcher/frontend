@@ -35,7 +35,7 @@ export interface HexCriteria {
 }
 
 export interface OrderUser {
-  discord_id: number;
+  discord_id: string;
   username: string;
   avatar_hash: string | null;
 }

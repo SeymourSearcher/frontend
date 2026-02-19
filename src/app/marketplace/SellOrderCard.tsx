@@ -10,7 +10,7 @@ interface SellOrderCardProps {
   onCancel?: () => void;
 }
 
-function getDiscordDmUrl(discordId: number): string {
+function getDiscordDmUrl(discordId: string): string {
   return `https://discord.com/users/${discordId}`;
 }
 
