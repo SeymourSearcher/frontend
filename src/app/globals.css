@@ -8,10 +8,19 @@
   font-display: block;
 }
 
+@font-face {
+  font-family: 'MinecraftSeven-fallback';
+  src: local('Arial');
+  ascent-override: 100%;
+  descent-override: 20%;
+  line-gap-override: 0%;
+  size-adjust: 100%;
+}
+
 :root {
   --background: #0a0a0a;
   --foreground: #cccccc;
-  --font-minecraft: 'MinecraftSeven', Arial, sans-serif;
+  --font-minecraft: 'MinecraftSeven', 'MinecraftSeven-fallback', Arial, sans-serif;
 }
 
 @theme inline {

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/Header";
 import { WebsiteJsonLd, OrganizationJsonLd } from "@/components/seo";
@@ -43,7 +44,6 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <script src="/tt-policy.js" />
         <link
           rel="preload"
           href="/fonts/MinecraftSeven.woff2"
@@ -55,6 +55,7 @@ export default function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body>
+        <Script src="/tt-policy.js" strategy="beforeInteractive" />
         <Header />
         <main>{children}</main>
       </body>
