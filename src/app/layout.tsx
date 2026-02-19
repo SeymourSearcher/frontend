@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import "./globals.css";
 import Header from "@/components/Header";
 import { WebsiteJsonLd, OrganizationJsonLd } from "@/components/seo";
@@ -55,7 +54,6 @@ export default function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body>
-        <Script src="/tt-policy.js" strategy="beforeInteractive" />
         <Header />
         <main>{children}</main>
       </body>

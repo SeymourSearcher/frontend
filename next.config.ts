@@ -26,8 +26,6 @@ const nextConfig: NextConfig = {
           "base-uri 'self'",
           "form-action 'self'",
           "object-src 'none'",
-          "require-trusted-types-for 'script'",
-          "trusted-types default",
         ].join("; "),
       },
       {
