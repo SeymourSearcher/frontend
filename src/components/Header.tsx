@@ -33,12 +33,6 @@ function HeaderSkeleton() {
             {link.label}
           </Link>
         ))}
-        <a
-          href="https://discord.gg/ecUT2vfaX5"
-          className="text-[#ccc] no-underline text-[14px] p-[6px_10px] rounded-[6px] transition-[background] duration-300 hover:bg-[#333]"
-        >
-          Discord
-        </a>
       </nav>
       <div className="flex items-center gap-4 max-[980px]:hidden">
         <span className="text-[#ccc] text-[14px] p-[6px_10px]">Upload</span>
