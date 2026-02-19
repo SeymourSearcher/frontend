@@ -16,6 +16,7 @@ const NAV_LINKS = [
   { href: "/items", label: "Items" },
   { href: "/marketplace", label: "Marketplace" },
   { href: "/ranking", label: "Ranking" },
+  { href: "https://discord.gg/ecUT2vfaX5", label: "Discord" },
   { href: "/faq", label: "FAQ" },
 ];
 
