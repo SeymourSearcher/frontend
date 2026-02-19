@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { uploadSeymours } from "@/lib/api";
 import DiscordIcon from "./icons/DiscordIcon";
+import { LoginPromptModal } from "./LoginPromptModal";
 
 const NAV_LINKS = [
   { href: "/", label: "Home", external: false },
@@ -19,6 +20,7 @@ export default function Header() {
   const { user, loading, login, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -69,7 +71,7 @@ export default function Header() {
 
         <div className="flex items-center gap-4 max-[980px]:hidden">
           <button
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => user ? fileInputRef.current?.click() : setShowLoginPrompt(true)}
             className="text-[#ccc] no-underline text-[14px] p-[6px_10px] rounded-[6px] transition-[background] duration-300 hover:bg-[#333] bg-transparent border-none cursor-pointer font-['MinecraftSeven',Arial,sans-serif]"
           >
             Upload
@@ -165,6 +167,10 @@ export default function Header() {
           ))}
         </div>
       </aside>
+
+      {showLoginPrompt && (
+        <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />
+      )}
     </>
   );
 }
