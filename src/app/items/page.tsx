@@ -1,183 +1,17 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
-import Link from "next/link";
 import { useSeymours } from "@/hooks/useSeymours";
-import { Seymour } from "@/types/seymour";
-
-function SeymourCard({ seymour }: { seymour: Seymour }) {
-  return (
-    <Link href={`/hex/${seymour.hex_color}`} className="block">
-      <div className="bg-[#1a1a1a] rounded-lg p-3 flex flex-col items-center hover:bg-[#252525] transition-colors cursor-pointer">
-        <div
-          className="w-10 h-10 rounded mb-2"
-          style={{ backgroundColor: `#${seymour.hex_color}` }}
-        />
-        <span className="text-[11px] mb-1 font-bold" style={{ color: `#${seymour.hex_color}` }}>
-          #{seymour.hex_color}
-        </span>
-        <span className="text-[#888] text-[9px] mb-1">{seymour.item_name}</span>
-        {seymour.match && (
-          <div className="text-center mt-1">
-            <span className="text-[#5865F2] text-[9px] block">{seymour.match.target_name}</span>
-            <span className="text-[#666] text-[8px]">ΔE: {seymour.match.delta_e}</span>
-          </div>
-        )}
-      </div>
-    </Link>
-  );
-}
-
-function SeymourChip({ seymour }: { seymour: Seymour }) {
-  return (
-    <Link href={`/hex/${seymour.hex_color}`} className="block">
-      <div className="flex items-center gap-2 bg-[#252525] rounded px-3 py-2 hover:bg-[#333] transition-colors cursor-pointer">
-        <div className="w-6 h-6 rounded" style={{ backgroundColor: `#${seymour.hex_color}` }} />
-        <div className="flex flex-col">
-          <span className="text-[11px] font-bold" style={{ color: `#${seymour.hex_color}` }}>
-            #{seymour.hex_color}
-          </span>
-          <span className="text-[#888] text-[9px]">{seymour.item_name}</span>
-          {seymour.match && <span className="text-[#666] text-[8px]">ΔE: {seymour.match.delta_e}</span>}
-        </div>
-      </div>
-    </Link>
-  );
-}
-
-function MissingBadge({ pieces }: { pieces: string[] }) {
-  if (!pieces.length) return null;
-  return (
-    <span className="text-[9px] text-[#ff6b6b] bg-[#3a2020] px-2 py-0.5 rounded">
-      Missing: {pieces.join(", ")}
-    </span>
-  );
-}
-
-function MissingItem({ pieceName, hexColor }: { pieceName: string; hexColor: string }) {
-  return (
-    <div className="flex items-center gap-2 bg-[#252525] rounded px-3 py-2 ring-2 ring-[#ff4444] ring-opacity-70">
-      <div className="w-6 h-6 rounded opacity-50" style={{ backgroundColor: `#${hexColor}` }} />
-      <div className="flex flex-col">
-        <span className="text-[11px] font-bold opacity-50" style={{ color: `#${hexColor}` }}>
-          #{hexColor}
-        </span>
-        <span className="text-[#ff6b6b] text-[9px]">{pieceName}</span>
-      </div>
-    </div>
-  );
-}
-
-interface MultiSelectDropdownProps {
-  options: string[];
-  selected: string[];
-  allSelected: boolean;
-  onToggleAll: () => void;
-  onToggleOption: (value: string) => void;
-  label: string;
-}
-
-function MultiSelectDropdown({ options, selected, allSelected, onToggleAll, onToggleOption, label }: MultiSelectDropdownProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const listRef = useRef<HTMLDivElement>(null);
-  const optionRefs = useRef<Map<string, HTMLDivElement>>(new Map());
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    
-    let searchBuffer = "";
-    let resetTimeout: NodeJS.Timeout;
-    
-    function handleKeyDown(e: KeyboardEvent) {
-      const key = e.key.toLowerCase();
-      if (key.length !== 1 || !key.match(/[a-z0-9 ]/)) return;
-      
-      clearTimeout(resetTimeout);
-      searchBuffer += key;
-      resetTimeout = setTimeout(() => { searchBuffer = ""; }, 1000);
-      
-      const match = options.find((opt) => opt.toLowerCase().startsWith(searchBuffer));
-      if (match) {
-        optionRefs.current.get(match)?.scrollIntoView({ block: "nearest" });
-      }
-    }
-    
-    document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-      clearTimeout(resetTimeout);
-    };
-  }, [isOpen, options]);
-
-  const getButtonLabel = () => {
-    if (allSelected) return `All ${label}`;
-    if (selected.length === 0) return `Select ${label}`;
-    if (selected.length === 1) return selected[0];
-    return `${selected.length} selected`;
-  };
-
-  const handleOptionClick = (option: string) => {
-    if (allSelected) {
-      onToggleAll();
-    }
-    onToggleOption(option);
-  };
-
-  return (
-    <div ref={dropdownRef} className="relative">
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="bg-[#222] text-[#ccc] border border-[#444] rounded px-3 py-1 text-[12px] cursor-pointer flex items-center gap-2 min-w-[160px] justify-between"
-      >
-        <span className="truncate">{getButtonLabel()}</span>
-        <span className={`transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>
-      </button>
-      {isOpen && (
-        <div ref={listRef} className="absolute top-full left-0 mt-1 bg-[#222] border border-[#444] rounded shadow-lg z-50 min-w-[200px] max-h-[300px] overflow-y-auto">
-          <button
-            type="button"
-            onClick={onToggleAll}
-            className={`w-full text-left px-3 py-2 text-[12px] border-b border-[#444] cursor-pointer transition-colors ${
-              allSelected ? "bg-[#5865F2] text-white" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
-            }`}
-          >
-            All
-          </button>
-          {options.map((option) => (
-            <div
-              key={option}
-              ref={(el) => { if (el) optionRefs.current.set(option, el); }}
-              onClick={() => handleOptionClick(option)}
-              className="flex items-center gap-2 px-3 py-2 text-[12px] cursor-pointer transition-colors hover:bg-[#333]"
-            >
-              <input
-                type="checkbox"
-                checked={!allSelected && selected.includes(option)}
-                onChange={() => {}}
-                className="w-3.5 h-3.5 accent-[#5865F2] pointer-events-none"
-              />
-              <span className="text-[#ccc] truncate">{option}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+import { useSellMode } from "@/hooks/useSellMode";
+import { useAuth } from "@/hooks/useAuth";
+import SeymourCard from "./SeymourCard";
+import SeymourChip from "./SeymourChip";
+import MissingBadge from "./MissingBadge";
+import MissingItem from "./MissingItem";
+import MultiSelectDropdown from "./MultiSelectDropdown";
+import SellActionBar from "./SellActionBar";
 
 export default function ItemsPage() {
+  const { user } = useAuth();
   const {
     stats,
     filter,
@@ -206,11 +40,42 @@ export default function ItemsPage() {
     toggleSort,
   } = useSeymours();
 
+  const {
+    sellMode,
+    toggleSellMode,
+    selectedCount,
+    toggleSelection,
+    clearSelection,
+    isSelected,
+    price,
+    setPrice,
+    isSubmitting,
+    error,
+    setError,
+    successCount,
+    dismissSuccess,
+    submitSellOrders,
+  } = useSellMode();
+
   return (
-    <main className="min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif]">
+    <main className={`min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif] ${sellMode ? "pb-24" : ""}`}>
       <h1 className="text-[1.5em] text-[#f0f0f0] mb-4 text-center">My Seymours</h1>
 
       {stats && <p className="text-[#888] text-center mb-4 text-[12px]">Total: {stats.total_seymours}</p>}
+
+      {successCount !== null && (
+        <div className="max-w-[600px] mx-auto mb-4 bg-[#1a3a1a] border border-[#4ade80] rounded-lg p-3 flex items-center justify-between">
+          <span className="text-[#4ade80] text-[12px]">
+            Successfully listed {successCount} seymour{successCount !== 1 ? "s" : ""} for sale!
+          </span>
+          <button
+            onClick={dismissSuccess}
+            className="text-[#4ade80] hover:text-[#22c55e] text-[14px]"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       <div className="flex flex-wrap justify-center items-center gap-2 mb-4">
         {FILTERS.map((f) => (
@@ -222,7 +87,9 @@ export default function ItemsPage() {
             }`}
           >
             {f.label}
-            {stats && f.key !== "all" && f.key !== "custom" && <span className="ml-1 opacity-70">({getStatCount(f.key)})</span>}
+            {stats && f.key !== "all" && f.key !== "custom" && (
+              <span className="ml-1 opacity-70">({getStatCount(f.key)})</span>
+            )}
           </button>
         ))}
         {canFilterIncomplete && (
@@ -255,6 +122,17 @@ export default function ItemsPage() {
         >
           ΔE {sortDirection === "asc" ? "↑" : sortDirection === "desc" ? "↓" : ""}
         </button>
+
+        {user && (
+          <button
+            onClick={toggleSellMode}
+            className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 ${
+              sellMode ? "bg-[#4ade80] text-[#121212]" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
+            }`}
+          >
+            {sellMode ? "Exit Sell Mode" : "Sell"}
+          </button>
+        )}
       </div>
 
       {hasSubFilter && availableSubFilters.length > 0 && (
@@ -288,10 +166,19 @@ export default function ItemsPage() {
                   {!incompleteOnly && <MissingBadge pieces={missing} />}
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  {items.map((s, idx) => <SeymourChip key={`${groupName}-${idx}`} seymour={s} />)}
-                  {incompleteOnly && missing.map((piece) => (
-                    <MissingItem key={piece} pieceName={piece} hexColor={targetHex} />
+                  {items.map((s, idx) => (
+                    <SeymourChip
+                      key={`${groupName}-${idx}`}
+                      seymour={s}
+                      sellMode={sellMode}
+                      isSelected={isSelected(s.id)}
+                      onSelect={toggleSelection}
+                    />
                   ))}
+                  {incompleteOnly &&
+                    missing.map((piece) => (
+                      <MissingItem key={piece} pieceName={piece} hexColor={targetHex} />
+                    ))}
                 </div>
               </div>
             );
@@ -299,8 +186,29 @@ export default function ItemsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-[repeat(auto-fill,minmax(140px,1fr))] gap-3 max-w-[1200px] mx-auto">
-          {seymours.map((s) => <SeymourCard key={s.id} seymour={s} />)}
+          {seymours.map((s) => (
+            <SeymourCard
+              key={s.id}
+              seymour={s}
+              sellMode={sellMode}
+              isSelected={isSelected(s.id)}
+              onSelect={toggleSelection}
+            />
+          ))}
         </div>
+      )}
+
+      {sellMode && (
+        <SellActionBar
+          selectedCount={selectedCount}
+          price={price}
+          onPriceChange={setPrice}
+          onSubmit={submitSellOrders}
+          onCancel={toggleSellMode}
+          onClear={clearSelection}
+          isSubmitting={isSubmitting}
+          error={error}
+        />
       )}
     </main>
   );

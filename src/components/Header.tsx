@@ -9,6 +9,7 @@ import DiscordIcon from "./icons/DiscordIcon";
 const NAV_LINKS = [
   { href: "/", label: "Home", external: false },
   { href: "/items", label: "Items", external: false },
+  { href: "/marketplace", label: "Marketplace", external: false },
   { href: "/ranking", label: "Ranking", external: false },
   { href: "https://discord.gg/ecUT2vfaX5", label: "Discord", external: true },
   { href: "/faq", label: "FAQ", external: false },

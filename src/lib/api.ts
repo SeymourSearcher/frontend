@@ -1,3 +1,18 @@
+import type {
+  BuyOrderListResponse,
+  BuyOrderCreate,
+  BuyOrder,
+  OrderType,
+  OrderStatus,
+  FillableOrder,
+  SortBy,
+  SortOrder,
+  SellOrder,
+  SellOrderListResponse,
+  SellOrderCreate,
+  SellOrderFilters,
+} from "@/types/marketplace";
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 function getToken() {
@@ -166,5 +181,177 @@ export async function fetchHexInfo(hexCode: string, includeDyes: boolean = false
   const res = await fetch(`${API_URL}/hex/${hexCode}${params}`);
   if (!res.ok) return null;
   return res.json();
+}
+
+export interface FetchOrdersParams {
+  skip?: number;
+  limit?: number;
+  order_type?: OrderType;
+  set_name?: string;
+  piece_types?: number[];
+  tier?: string;
+  sort_by?: SortBy;
+  sort_order?: SortOrder;
+}
+
+export interface FetchMyOrdersParams {
+  skip?: number;
+  limit?: number;
+  status?: OrderStatus;
+  sort_by?: SortBy;
+  sort_order?: SortOrder;
+}
+
+export interface FetchFillableParams {
+  skip?: number;
+  limit?: number;
+  sort_by?: SortBy;
+  sort_order?: SortOrder;
+}
+
+export async function fetchOrders(params: FetchOrdersParams = {}): Promise<BuyOrderListResponse | null> {
+  const searchParams = new URLSearchParams();
+  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
+  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
+  if (params.order_type) searchParams.set("order_type", params.order_type);
+  if (params.set_name) searchParams.set("set_name", params.set_name);
+  if (params.piece_types && params.piece_types.length > 0) {
+    searchParams.set("piece_types", params.piece_types.join(","));
+  }
+  if (params.tier) searchParams.set("tier", params.tier);
+  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
+  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
+
+  const query = searchParams.toString();
+  const res = await fetch(`${API_URL}/marketplace/orders${query ? `?${query}` : ""}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function fetchMyOrders(params: FetchMyOrdersParams = {}): Promise<BuyOrderListResponse | null> {
+  const searchParams = new URLSearchParams();
+  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
+  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
+  if (params.status) searchParams.set("status", params.status);
+  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
+  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
+
+  const query = searchParams.toString();
+  return request<BuyOrderListResponse>(`/marketplace/orders/mine${query ? `?${query}` : ""}`);
+}
+
+export async function fetchFillableOrders(params: FetchFillableParams = {}): Promise<FillableOrder[] | null> {
+  const searchParams = new URLSearchParams();
+  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
+  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
+  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
+  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
+
+  const query = searchParams.toString();
+  return request<FillableOrder[]>(`/marketplace/orders/fillable${query ? `?${query}` : ""}`);
+}
+
+export class ApiError extends Error {
+  constructor(public detail: string) {
+    super(detail);
+  }
+}
+
+export async function createOrder(data: BuyOrderCreate): Promise<BuyOrder> {
+  const token = localStorage.getItem("token");
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_URL}/marketplace/orders`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: "Failed to create order" }));
+    throw new ApiError(errorData.detail || "Failed to create order");
+  }
+  return res.json();
+}
+
+export async function cancelOrder(orderId: number): Promise<{ detail: string } | null> {
+  return request<{ detail: string }>(`/marketplace/orders/${orderId}`, {
+    method: "DELETE",
+  });
+}
+
+export async function fetchAvailableSets(): Promise<string[] | null> {
+  const res = await fetch(`${API_URL}/seymours/available-filters?filter=sets`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function fetchSetsPieces(): Promise<Record<string, number[]> | null> {
+  const res = await fetch(`${API_URL}/marketplace/sets-pieces`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export interface FetchSellOrdersParams extends SellOrderFilters {
+  skip?: number;
+  limit?: number;
+}
+
+export async function fetchSellOrders(params: FetchSellOrdersParams = {}): Promise<SellOrderListResponse | null> {
+  const searchParams = new URLSearchParams();
+  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
+  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
+  if (params.piece_type !== undefined) searchParams.set("piece_type", String(params.piece_type));
+  if (params.hex_color) searchParams.set("hex_color", params.hex_color);
+  if (params.min_price !== undefined) searchParams.set("min_price", String(params.min_price));
+  if (params.max_price !== undefined) searchParams.set("max_price", String(params.max_price));
+  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
+  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
+
+  const query = searchParams.toString();
+  const res = await fetch(`${API_URL}/marketplace/orders/sell${query ? `?${query}` : ""}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function fetchMySellOrders(params: FetchMyOrdersParams = {}): Promise<SellOrderListResponse | null> {
+  const searchParams = new URLSearchParams();
+  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
+  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
+  if (params.status) searchParams.set("status", params.status);
+  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
+  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
+
+  const query = searchParams.toString();
+  return request<SellOrderListResponse>(`/marketplace/orders/sell/mine${query ? `?${query}` : ""}`);
+}
+
+export async function createSellOrders(data: SellOrderCreate): Promise<SellOrder[]> {
+  const token = localStorage.getItem("token");
+  const headers: HeadersInit = { "Content-Type": "application/json" };
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_URL}/marketplace/orders/sell`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ detail: "Failed to create sell orders" }));
+    throw new ApiError(errorData.detail || "Failed to create sell orders");
+  }
+  return res.json();
+}
+
+export async function cancelSellOrder(orderId: number): Promise<{ detail: string } | null> {
+  return request<{ detail: string }>(`/marketplace/orders/sell/${orderId}`, {
+    method: "DELETE",
+  });
 }
 

@@ -1,0 +1,66 @@
+"use client";
+
+import Link from "next/link";
+import { Seymour } from "@/types/seymour";
+
+interface SeymourCardProps {
+  seymour: Seymour;
+  sellMode?: boolean;
+  isSelected?: boolean;
+  onSelect?: (id: number) => void;
+}
+
+export default function SeymourCard({ seymour, sellMode, isSelected, onSelect }: SeymourCardProps) {
+  if (sellMode) {
+    return (
+      <div
+        onClick={() => onSelect?.(seymour.id)}
+        className={`bg-[#1a1a1a] rounded-lg p-3 flex flex-col items-center hover:bg-[#252525] transition-colors cursor-pointer relative ${
+          isSelected ? "ring-2 ring-[#5865F2]" : ""
+        }`}
+      >
+        <input
+          type="checkbox"
+          checked={isSelected}
+          onChange={() => {}}
+          className="absolute top-2 right-2 w-4 h-4 accent-[#5865F2] pointer-events-none"
+        />
+        <div
+          className="w-10 h-10 rounded mb-2"
+          style={{ backgroundColor: `#${seymour.hex_color}` }}
+        />
+        <span className="text-[11px] mb-1 font-bold" style={{ color: `#${seymour.hex_color}` }}>
+          #{seymour.hex_color}
+        </span>
+        <span className="text-[#888] text-[9px] mb-1">{seymour.item_name}</span>
+        {seymour.match && (
+          <div className="text-center mt-1">
+            <span className="text-[#5865F2] text-[9px] block">{seymour.match.target_name}</span>
+            <span className="text-[#666] text-[8px]">ΔE: {seymour.match.delta_e}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <Link href={`/hex/${seymour.hex_color}`} className="block">
+      <div className="bg-[#1a1a1a] rounded-lg p-3 flex flex-col items-center hover:bg-[#252525] transition-colors cursor-pointer">
+        <div
+          className="w-10 h-10 rounded mb-2"
+          style={{ backgroundColor: `#${seymour.hex_color}` }}
+        />
+        <span className="text-[11px] mb-1 font-bold" style={{ color: `#${seymour.hex_color}` }}>
+          #{seymour.hex_color}
+        </span>
+        <span className="text-[#888] text-[9px] mb-1">{seymour.item_name}</span>
+        {seymour.match && (
+          <div className="text-center mt-1">
+            <span className="text-[#5865F2] text-[9px] block">{seymour.match.target_name}</span>
+            <span className="text-[#666] text-[8px]">ΔE: {seymour.match.delta_e}</span>
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+}
