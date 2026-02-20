@@ -77,62 +77,65 @@ export default function ItemsPage() {
         </div>
       )}
 
-      <div className="flex flex-wrap justify-center items-center gap-2 mb-4">
-        {FILTERS.map((f) => (
+      <div className="flex justify-center items-center gap-2 mb-4">
+        <div className="flex flex-wrap justify-center items-center gap-2">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer transition-colors ${
+                filter === f.key ? "bg-[#5865F2] text-white" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
+              }`}
+            >
+              {f.label}
+              {stats && f.key !== "all" && f.key !== "custom" && (
+                <span className="ml-1 opacity-70">({getStatCount(f.key)})</span>
+              )}
+            </button>
+          ))}
           <button
-            key={f.key}
-            onClick={() => setFilter(f.key)}
-            className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer transition-colors ${
-              filter === f.key ? "bg-[#5865F2] text-white" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
+            onClick={toggleSort}
+            className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 flex items-center gap-1 ${
+              sortDirection ? "bg-[#5865F2] text-white" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
             }`}
           >
-            {f.label}
-            {stats && f.key !== "all" && f.key !== "custom" && (
-              <span className="ml-1 opacity-70">({getStatCount(f.key)})</span>
-            )}
+            ΔE {sortDirection === "asc" ? "↑" : sortDirection === "desc" ? "↓" : ""}
           </button>
-        ))}
-        {canFilterIncomplete && (
-          <label className="flex items-center gap-1.5 ml-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={incompleteOnly}
-              onChange={(e) => setIncompleteOnly(e.target.checked)}
-              className="w-4 h-4 accent-[#5865F2] cursor-pointer"
-            />
-            <span className="text-[12px] text-[#ccc]">Missing only</span>
-          </label>
-        )}
-        {canIncludeDyes && (
-          <label className="flex items-center gap-1.5 ml-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={includeDyes}
-              onChange={(e) => setIncludeDyes(e.target.checked)}
-              className="w-4 h-4 accent-[#5865F2] cursor-pointer"
-            />
-            <span className="text-[12px] text-[#ccc]">Include dyes</span>
-          </label>
-        )}
-        <button
-          onClick={toggleSort}
-          className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 flex items-center gap-1 ${
-            sortDirection ? "bg-[#5865F2] text-white" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
-          }`}
-        >
-          ΔE {sortDirection === "asc" ? "↑" : sortDirection === "desc" ? "↓" : ""}
-        </button>
-
-        {user && (
-          <button
-            onClick={toggleSellMode}
-            className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 ${
-              sellMode ? "bg-[#4ade80] text-[#121212]" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
-            }`}
-          >
-            {sellMode ? "Exit Sell Mode" : "Sell"}
-          </button>
-        )}
+          {user && (
+            <button
+              onClick={toggleSellMode}
+              className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 ${
+                sellMode ? "bg-[#4ade80] text-[#121212]" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
+              }`}
+            >
+              {sellMode ? "Exit Sell Mode" : "Sell"}
+            </button>
+          )}
+        </div>
+        <div className="flex items-center gap-2 min-w-[200px]">
+          {canIncludeDyes && (
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={includeDyes}
+                onChange={(e) => setIncludeDyes(e.target.checked)}
+                className="w-4 h-4 accent-[#5865F2] cursor-pointer"
+              />
+              <span className="text-[12px] text-[#ccc]">Include dyes</span>
+            </label>
+          )}
+          {canFilterIncomplete && (
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={incompleteOnly}
+                onChange={(e) => setIncompleteOnly(e.target.checked)}
+                className="w-4 h-4 accent-[#5865F2] cursor-pointer"
+              />
+              <span className="text-[12px] text-[#ccc]">Missing only</span>
+            </label>
+          )}
+        </div>
       </div>
 
       {hasSubFilter && availableSubFilters.length > 0 && (
