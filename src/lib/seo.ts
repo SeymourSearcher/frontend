@@ -9,25 +9,32 @@ export const siteConfig = {
   url: BASE_URL,
   ogImage: "/seymourcafe-logo.webp",
   keywords: [
-    "Hypixel Skyblock Seymour",
+    "Where to find Seymour Hypixel Skyblock",
     "Seymour Hypixel Skyblock",
+    "Hypixel Skyblock Seymour",
+    "Seymour Hypixel Skyblock Garden",
     "Seymour armor Hypixel",
+    "Seymours armor",
     "Seymour's Special Armor",
     "Seymour Cafe",
     "Seymour Cafe Discord",
     "Seymour Cafe Hypixel Skyblock Discord",
     "Seymour Garden",
     "Seymour Garden Hypixel Skyblock",
+    "Velvet Top Hat Skyblock",
+    "Velvet Top Hat",
+    "Cashmere Jacket Skyblock",
+    "Cashmere Jacket",
+    "Satin Trousers Skyblock",
+    "Satin Trousers",
+    "Oxford Shoes Skyblock",
+    "Oxford Shoes",
     "Seymour collecting",
     "Seymour armor collecting",
     "Hypixel Skyblock armor collecting",
     "Skyblock Seymour",
     "Skyblock armor",
     "Seymour Rift",
-    "Velvet Top Hat",
-    "Cashmere Jacket",
-    "Satin Trousers",
-    "Oxford Shoes",
     "Seymour hex code",
     "Skyblock collector",
   ],
@@ -83,31 +90,31 @@ export function createMetadata({
 export const pageMetadata = {
   home: createMetadata({
     description:
-      "Seymour Cafe - the Hypixel Skyblock tool for collecting Seymour armor. Find colored armor pieces from the Garden visitor with hex filtering. Join our Discord community.",
+      "Where to find Seymour on Hypixel Skyblock? Seymour Cafe helps you collect Seymours armor from the Garden visitor. Search Velvet Top Hats by hex code. Join our Discord.",
   }),
   marketplace: createMetadata({
     title: "Marketplace",
     description:
-      "Buy and sell Seymour armor on Hypixel Skyblock. The Seymour Cafe marketplace for collecting Velvet Top Hats, Cashmere Jackets, Satin Trousers, and Oxford Shoes.",
+      "Buy and sell Seymours armor on Hypixel Skyblock. Seymour Cafe marketplace for Velvet Top Hat, Cashmere Jacket, Satin Trousers, and Oxford Shoes collecting.",
     path: "/marketplace",
   }),
   items: createMetadata({
     title: "My Seymours",
     description:
-      "Manage your Seymour armor collection on Hypixel Skyblock. Track your Garden pieces, filter by tier and color.",
+      "Manage your Seymours armor collection on Hypixel Skyblock. Track Garden pieces like Velvet Top Hats, filter by tier and hex color.",
     path: "/items",
     noIndex: true,
   }),
   ranking: createMetadata({
     title: "Rankings",
     description:
-      "Top Seymour armor collectors on Hypixel Skyblock. See who's collecting the most Garden pieces ranked by tiers and complete sets.",
+      "Top Seymours armor collectors on Hypixel Skyblock. Rankings for Garden armor collecting - Velvet Top Hats, Cashmere Jackets, and complete sets.",
     path: "/ranking",
   }),
   faq: createMetadata({
     title: "FAQ",
     description:
-      "Learn about Seymour armor collecting on Hypixel Skyblock. How to get pieces from the Garden visitor, hex codes, tiers, and join the Seymour Cafe Discord.",
+      "Where to find Seymour on Hypixel Skyblock? Learn about Seymours armor from the Garden, Velvet Top Hat hex codes, collecting tiers. Join Seymour Cafe Discord.",
     path: "/faq",
   }),
 };
@@ -115,7 +122,7 @@ export const pageMetadata = {
 export function createHexPageMetadata(hexcode: string): Metadata {
   return createMetadata({
     title: `#${hexcode} Seymour Armor`,
-    description: `Find Seymour armor on Hypixel Skyblock matching #${hexcode}. Seymour Cafe hex search for Garden armor collecting with Delta E matching.`,
+    description: `Find Seymours armor on Hypixel Skyblock matching #${hexcode}. Seymour Cafe search for Garden Velvet Top Hats and armor pieces by hex code.`,
     path: `/hex/${hexcode}`,
   });
 }
