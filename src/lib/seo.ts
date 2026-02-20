@@ -5,26 +5,33 @@ const BASE_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000"
 export const siteConfig = {
   name: "Seymour Searcher",
   description:
-    "Search and discover Seymour's Special Armor pieces on Hypixel Skyblock. Find colored Velvet Top Hats, Cashmere Jackets, Satin Trousers, and Oxford Shoes by hex code.",
+    "The Seymour Cafe tool for collecting Seymour's Special Armor on Hypixel Skyblock. Search colored armor pieces from the Garden visitor by hex code. Join our Discord community.",
   url: BASE_URL,
   ogImage: "/seymourcafe-logo.webp",
   keywords: [
+    "Hypixel Skyblock Seymour",
     "Seymour Hypixel Skyblock",
-    "Seymour's Special Armor Hypixel Skyblock",
-    "Seymour Cafe Hypixel Skyblock",
+    "Seymour armor Hypixel",
+    "Seymour's Special Armor",
+    "Seymour Cafe",
+    "Seymour Cafe Discord",
+    "Seymour Cafe Hypixel Skyblock Discord",
+    "Seymour Garden",
     "Seymour Garden Hypixel Skyblock",
+    "Seymour collecting",
+    "Seymour armor collecting",
+    "Hypixel Skyblock armor collecting",
+    "Skyblock Seymour",
+    "Skyblock armor",
     "Seymour Rift",
-    "Seymour Armor",
-    "Seymour hex search",
-    "Seymour color matching",
-    "Hypixel Skyblock armor",
     "Velvet Top Hat",
     "Cashmere Jacket",
     "Satin Trousers",
     "Oxford Shoes",
+    "Seymour hex code",
     "Skyblock collector",
   ],
-  author: "Seymour Searcher",
+  author: "Seymour Cafe",
   twitterHandle: "@seymoursearcher",
 };
 
@@ -76,38 +83,39 @@ export function createMetadata({
 export const pageMetadata = {
   home: createMetadata({
     description:
-      "Search and discover Seymour's Special Armor on Hypixel Skyblock. Find colored armor pieces from Seymour the Garden visitor with advanced hex filtering and statistics.",
+      "Seymour Cafe - the Hypixel Skyblock tool for collecting Seymour armor. Find colored armor pieces from the Garden visitor with hex filtering. Join our Discord community.",
   }),
   marketplace: createMetadata({
     title: "Marketplace",
     description:
-      "Buy and sell Seymour's Special Armor pieces on Hypixel Skyblock. Browse listings for Velvet Top Hats, Cashmere Jackets, Satin Trousers, and Oxford Shoes.",
+      "Buy and sell Seymour armor on Hypixel Skyblock. The Seymour Cafe marketplace for collecting Velvet Top Hats, Cashmere Jackets, Satin Trousers, and Oxford Shoes.",
     path: "/marketplace",
   }),
   items: createMetadata({
     title: "My Seymours",
-    description: "View and manage your Seymour's Special Armor collection from Hypixel Skyblock. Filter by tier, color, and set.",
+    description:
+      "Manage your Seymour armor collection on Hypixel Skyblock. Track your Garden pieces, filter by tier and color.",
     path: "/items",
     noIndex: true,
   }),
   ranking: createMetadata({
     title: "Rankings",
     description:
-      "See the top Seymour's Special Armor collectors on Hypixel Skyblock ranked by total pieces, tiers, and complete sets.",
+      "Top Seymour armor collectors on Hypixel Skyblock. See who's collecting the most Garden pieces ranked by tiers and complete sets.",
     path: "/ranking",
   }),
   faq: createMetadata({
     title: "FAQ",
     description:
-      "Learn about Seymour's Special Armor on Hypixel Skyblock - how to obtain pieces from Seymour in the Garden, hex codes, tiers, and Delta E color matching.",
+      "Learn about Seymour armor collecting on Hypixel Skyblock. How to get pieces from the Garden visitor, hex codes, tiers, and join the Seymour Cafe Discord.",
     path: "/faq",
   }),
 };
 
 export function createHexPageMetadata(hexcode: string): Metadata {
   return createMetadata({
-    title: `#${hexcode} Seymour Armor Search`,
-    description: `Find Seymour's Special Armor pieces on Hypixel Skyblock matching hex color #${hexcode}. See closest matches, Delta E values, and available pieces.`,
+    title: `#${hexcode} Seymour Armor`,
+    description: `Find Seymour armor on Hypixel Skyblock matching #${hexcode}. Seymour Cafe hex search for Garden armor collecting with Delta E matching.`,
     path: `/hex/${hexcode}`,
   });
 }
