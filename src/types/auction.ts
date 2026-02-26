@@ -1,6 +1,7 @@
 export interface ActiveAuction {
   auction_id: string;
   seller_uuid: string;
+  seller_name: string | null;
   price: number;
   is_bin: boolean;
   start_time: number;
@@ -17,7 +18,9 @@ export interface ActiveAuction {
 export interface EndedAuction {
   auction_id: string;
   seller_uuid: string;
+  seller_name: string | null;
   buyer_uuid: string;
+  buyer_name: string | null;
   price: number;
   is_bin: boolean;
   item_uuid: string;

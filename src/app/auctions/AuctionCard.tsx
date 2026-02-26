@@ -88,9 +88,9 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
           {isEnded ? (
             <>
               <span>Sold: {formatTimestamp(endedAuction.timestamp)}</span>
-              {endedAuction.buyer_uuid && (
-                <span className="truncate max-w-[80px]">
-                  Buyer: {endedAuction.buyer_uuid.slice(0, 8)}
+              {(endedAuction.buyer_name || endedAuction.buyer_uuid) && (
+                <span className="truncate max-w-[100px]">
+                  Buyer: {endedAuction.buyer_name || endedAuction.buyer_uuid.slice(0, 8)}
                 </span>
               )}
             </>
@@ -99,7 +99,9 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
               <span className="text-[#f0f0f0] font-medium">
                 {formatTimeRemaining(activeAuction.end_time)}
               </span>
-              <span>Seller: {activeAuction.seller_uuid.slice(0, 8)}</span>
+              <span className="truncate max-w-[100px]">
+                Seller: {activeAuction.seller_name || activeAuction.seller_uuid.slice(0, 8)}
+              </span>
             </>
           )}
         </div>
