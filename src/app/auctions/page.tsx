@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchActiveAuctions, fetchEndedAuctions, fetchAuctionSets } from "@/lib/api";
+import { fetchActiveAuctions, fetchEndedAuctions, fetchRecentBids, fetchAuctionSets } from "@/lib/api";
+import type { RecentBid } from "@/lib/api";
 import type { ActiveAuction, EndedAuction, AuctionFilters as AuctionFiltersParams } from "@/types/auction";
 import AuctionsGrid from "./AuctionsGrid";
 import AuctionFilters from "./AuctionFilters";
+import RecentBidsFeed from "./RecentBidsFeed";
 import { TabButton, Divider } from "./ui";
 
-type Tab = "active" | "ended";
+type Tab = "active" | "ended" | "recent-bids";
 type BinFilter = "all" | "bin" | "nobin";
 type Tier = "t1" | "t2" | "t3" | "";
 
@@ -15,6 +17,7 @@ export default function AuctionsPage() {
   const [tab, setTab] = useState<Tab>("active");
   const [activeAuctions, setActiveAuctions] = useState<ActiveAuction[]>([]);
   const [endedAuctions, setEndedAuctions] = useState<EndedAuction[]>([]);
+  const [recentBids, setRecentBids] = useState<RecentBid[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
 
@@ -54,6 +57,15 @@ export default function AuctionsPage() {
 
   async function loadAuctions() {
     setLoading(true);
+
+    if (tab === "recent-bids") {
+      const data = await fetchRecentBids();
+      setRecentBids(data || []);
+      setTotal(data?.length || 0);
+      setLoading(false);
+      return;
+    }
+
     const params: AuctionFiltersParams = { limit: 50 };
     if (selectedPieces.length > 0) params.pieces = selectedPieces;
     if (binFilter !== "all") params.bin_filter = binFilter;
@@ -89,42 +101,51 @@ export default function AuctionsPage() {
             <TabButton active={tab === "ended"} onClick={() => setTab("ended")}>
               Ended
             </TabButton>
+            <TabButton active={tab === "recent-bids"} onClick={() => setTab("recent-bids")}>
+              Recent Bids
+            </TabButton>
           </div>
 
           <Divider />
 
           <span className="text-[#888] text-[11px]">
-            Browse {tab === "active" ? "live" : "completed"} Seymour auctions
+            {tab === "recent-bids"
+              ? "Live feed of recent bids"
+              : `Browse ${tab === "active" ? "live" : "completed"} Seymour auctions`}
           </span>
         </div>
 
-        <AuctionFilters
-          tab={tab}
-          selectedPieces={selectedPieces}
-          binFilter={binFilter}
-          tier={tier}
-          setName={setName}
-          minPrice={minPrice}
-          maxPrice={maxPrice}
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          availableSets={availableSets}
-          total={total}
-          onTogglePiece={togglePiece}
-          onClearPieces={() => setSelectedPieces([])}
-          onBinFilterChange={setBinFilter}
-          onTierChange={setTier}
-          onSetNameChange={setSetName}
-          onMinPriceChange={setMinPrice}
-          onMaxPriceChange={setMaxPrice}
-          onSortByChange={setSortBy}
-          onSortOrderChange={setSortOrder}
-        />
+        {tab !== "recent-bids" && (
+          <AuctionFilters
+            tab={tab}
+            selectedPieces={selectedPieces}
+            binFilter={binFilter}
+            tier={tier}
+            setName={setName}
+            minPrice={minPrice}
+            maxPrice={maxPrice}
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            availableSets={availableSets}
+            total={total}
+            onTogglePiece={togglePiece}
+            onClearPieces={() => setSelectedPieces([])}
+            onBinFilterChange={setBinFilter}
+            onTierChange={setTier}
+            onSetNameChange={setSetName}
+            onMinPriceChange={setMinPrice}
+            onMaxPriceChange={setMaxPrice}
+            onSortByChange={setSortBy}
+            onSortOrderChange={setSortOrder}
+          />
+        )}
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <div className="text-[#888] text-[14px]">Loading auctions...</div>
+            <div className="text-[#888] text-[14px]">Loading...</div>
           </div>
+        ) : tab === "recent-bids" ? (
+          <RecentBidsFeed bids={recentBids} />
         ) : (
           <AuctionsGrid
             auctions={tab === "active" ? activeAuctions : endedAuctions}

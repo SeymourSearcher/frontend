@@ -13,6 +13,7 @@ export interface ActiveAuction {
   delta_e: number;
   abs_diff: number;
   target_hex: string;
+  set_name: string | null;
 }
 
 export interface EndedAuction {
@@ -31,6 +32,7 @@ export interface EndedAuction {
   delta_e: number;
   abs_diff: number;
   target_hex: string;
+  set_name: string | null;
 }
 
 export interface ActiveAuctionListResponse {

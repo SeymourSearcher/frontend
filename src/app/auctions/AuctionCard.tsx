@@ -67,8 +67,9 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
           <div className="flex items-center gap-1.5 mt-1">
             <ColorSwatch hex={auction.target_hex} size="sm" />
             <span className="text-[9px] text-[#666]">
-              Target:{" "}
-              <span style={{ color: `#${auction.target_hex}` }}>#{auction.target_hex}</span>
+              <span style={{ color: `#${auction.target_hex}` }}>
+                {auction.set_name || `#${auction.target_hex}`}
+              </span>
             </span>
           </div>
         </div>
@@ -87,10 +88,10 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
         <div className="flex flex-col items-end text-[9px] text-[#666]">
           {isEnded ? (
             <>
-              <span>Sold: {formatTimestamp(endedAuction.timestamp)}</span>
+              <span>{formatTimestamp(endedAuction.timestamp)}</span>
               {(endedAuction.buyer_name || endedAuction.buyer_uuid) && (
-                <span className="truncate max-w-[100px]">
-                  Buyer: {endedAuction.buyer_name || endedAuction.buyer_uuid.slice(0, 8)}
+                <span className="truncate max-w-[120px]">
+                  Buyer: {endedAuction.buyer_name || endedAuction.buyer_uuid.slice(0, 15)}
                 </span>
               )}
             </>
@@ -99,8 +100,8 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
               <span className="text-[#f0f0f0] font-medium">
                 {formatTimeRemaining(activeAuction.end_time)}
               </span>
-              <span className="truncate max-w-[100px]">
-                Seller: {activeAuction.seller_name || activeAuction.seller_uuid.slice(0, 8)}
+              <span className="truncate max-w-[120px]">
+                Seller: {activeAuction.seller_name || activeAuction.seller_uuid.slice(0, 15)}
               </span>
             </>
           )}

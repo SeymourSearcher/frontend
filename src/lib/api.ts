@@ -395,6 +395,26 @@ export async function fetchEndedAuctions(
   return res.json();
 }
 
+export interface RecentBid {
+  auction_id: string;
+  bidder_uuid: string;
+  bidder_name: string | null;
+  amount: number;
+  timestamp: number;
+  hex_color: string;
+  piece: number;
+  target_hex: string;
+  set_name: string | null;
+  delta_e: number;
+  abs_diff: number;
+}
+
+export async function fetchRecentBids(limit = 50): Promise<RecentBid[] | null> {
+  const res = await fetch(`${API_URL}/auctions/recent-bids?limit=${limit}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
 export async function fetchAuctionSets(): Promise<string[] | null> {
   const res = await fetch(`${API_URL}/auctions/sets`);
   if (!res.ok) return null;
