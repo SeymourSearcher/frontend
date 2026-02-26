@@ -1,0 +1,109 @@
+"use client";
+
+import type { ActiveAuction, EndedAuction } from "@/types/auction";
+import {
+  PIECE_NAMES,
+  TIER_COLORS,
+  formatPrice,
+  formatTimeRemaining,
+  formatTimestamp,
+} from "./constants";
+
+interface AuctionCardProps {
+  auction: ActiveAuction | EndedAuction;
+  isEnded?: boolean;
+}
+
+function ColorSwatch({ hex, size = "md" }: { hex: string; size?: "sm" | "md" }) {
+  const sizeClass = size === "sm" ? "w-4 h-4" : "w-10 h-10";
+  return (
+    <div
+      className={`${sizeClass} rounded-md shrink-0`}
+      style={{ backgroundColor: `#${hex}` }}
+    />
+  );
+}
+
+function TierBadge({ tier }: { tier: string }) {
+  const color = TIER_COLORS[tier] || "#666";
+  return (
+    <span
+      className="text-[8px] px-1.5 py-0.5 rounded font-bold uppercase"
+      style={{ backgroundColor: color, color: "#000" }}
+    >
+      {tier}
+    </span>
+  );
+}
+
+function BinBadge() {
+  return (
+    <span className="text-[8px] px-1.5 py-0.5 rounded bg-[#5865F2] text-white font-bold">
+      BIN
+    </span>
+  );
+}
+
+export default function AuctionCard({ auction, isEnded = false }: AuctionCardProps) {
+  const activeAuction = auction as ActiveAuction;
+  const endedAuction = auction as EndedAuction;
+
+  return (
+    <div className="bg-[#1a1a1a] rounded-lg p-4 hover:bg-[#252525] transition-colors flex flex-col h-full">
+      <div className="flex items-start gap-3 flex-1">
+        <ColorSwatch hex={auction.hex_color} />
+        <div className="flex flex-col min-w-0 flex-1">
+          <div className="flex items-center gap-2 mb-1">
+            <span
+              className="text-[12px] font-bold truncate"
+              style={{ color: `#${auction.hex_color}` }}
+            >
+              #{auction.hex_color}
+            </span>
+            {auction.is_bin && <BinBadge />}
+            {auction.tier && <TierBadge tier={auction.tier} />}
+          </div>
+          <span className="text-[#888] text-[10px]">{PIECE_NAMES[auction.piece]}</span>
+          <div className="flex items-center gap-1.5 mt-1">
+            <ColorSwatch hex={auction.target_hex} size="sm" />
+            <span className="text-[9px] text-[#666]">
+              Target:{" "}
+              <span style={{ color: `#${auction.target_hex}` }}>#{auction.target_hex}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-[#333] mt-3 pt-3 flex items-center justify-between gap-2">
+        <div className="flex flex-col min-w-0">
+          <div className="text-[#4ade80] font-bold text-[13px]">
+            {formatPrice(auction.price)}
+          </div>
+          <div className="text-[#666] text-[9px]">
+            ΔE: {auction.delta_e.toFixed(1)} · Δ: {auction.abs_diff}
+          </div>
+        </div>
+
+        <div className="flex flex-col items-end text-[9px] text-[#666]">
+          {isEnded ? (
+            <>
+              <span>Sold: {formatTimestamp(endedAuction.timestamp)}</span>
+              {endedAuction.buyer_uuid && (
+                <span className="truncate max-w-[80px]">
+                  Buyer: {endedAuction.buyer_uuid.slice(0, 8)}
+                </span>
+              )}
+            </>
+          ) : (
+            <>
+              <span className="text-[#f0f0f0] font-medium">
+                {formatTimeRemaining(activeAuction.end_time)}
+              </span>
+              <span>Seller: {activeAuction.seller_uuid.slice(0, 8)}</span>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

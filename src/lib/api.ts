@@ -12,6 +12,11 @@ import type {
   SellOrderCreate,
   SellOrderFilters,
 } from "@/types/marketplace";
+import type {
+  ActiveAuctionListResponse,
+  EndedAuctionListResponse,
+  AuctionFilters,
+} from "@/types/auction";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -356,3 +361,42 @@ export async function cancelSellOrder(orderId: number): Promise<{ detail: string
   });
 }
 
+function buildAuctionParams(params: AuctionFilters): URLSearchParams {
+  const searchParams = new URLSearchParams();
+  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
+  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
+  if (params.hex_color) searchParams.set("hex_color", params.hex_color);
+  if (params.pieces?.length) searchParams.set("pieces", params.pieces.join(","));
+  if (params.min_price !== undefined) searchParams.set("min_price", String(params.min_price));
+  if (params.max_price !== undefined) searchParams.set("max_price", String(params.max_price));
+  if (params.bin_filter && params.bin_filter !== "all") searchParams.set("bin_filter", params.bin_filter);
+  if (params.tier) searchParams.set("tier", params.tier);
+  if (params.set_name) searchParams.set("set_name", params.set_name);
+  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
+  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
+  return searchParams;
+}
+
+export async function fetchActiveAuctions(
+  params: AuctionFilters = {}
+): Promise<ActiveAuctionListResponse | null> {
+  const query = buildAuctionParams(params).toString();
+  const res = await fetch(`${API_URL}/auctions/active${query ? `?${query}` : ""}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function fetchEndedAuctions(
+  params: AuctionFilters = {}
+): Promise<EndedAuctionListResponse | null> {
+  const query = buildAuctionParams(params).toString();
+  const res = await fetch(`${API_URL}/auctions/ended${query ? `?${query}` : ""}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function fetchAuctionSets(): Promise<string[] | null> {
+  const res = await fetch(`${API_URL}/auctions/sets`);
+  if (!res.ok) return null;
+  return res.json();
+}

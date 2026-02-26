@@ -13,6 +13,7 @@ const LoginPromptModal = lazy(() =>
 const NAV_LINKS = [
   { href: "/", label: "Home", external: false },
   { href: "/items", label: "Items", external: false },
+  { href: "/auctions", label: "Auctions", external: false },
   { href: "/marketplace", label: "Marketplace", external: false },
   { href: "/ranking", label: "Ranking", external: false },
   { href: "https://discord.gg/ecUT2vfaX5", label: "Discord", external: true },
