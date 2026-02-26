@@ -30,6 +30,7 @@ export default function AuctionsPage() {
   const [sortBy, setSortBy] = useState("timeleft");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [availableSets, setAvailableSets] = useState<string[]>([]);
+  const [includeDyes, setIncludeDyes] = useState(true);
 
   useEffect(() => {
     fetchAuctionSets().then((sets) => setAvailableSets(sets || []));
@@ -47,7 +48,7 @@ export default function AuctionsPage() {
 
   useEffect(() => {
     loadAuctions();
-  }, [tab, selectedPieces, binFilter, tier, setName, minPrice, maxPrice, sortBy, sortOrder]);
+  }, [tab, selectedPieces, binFilter, tier, setName, minPrice, maxPrice, sortBy, sortOrder, includeDyes]);
 
   function togglePiece(piece: number) {
     setSelectedPieces((prev) =>
@@ -59,14 +60,14 @@ export default function AuctionsPage() {
     setLoading(true);
 
     if (tab === "recent-bids") {
-      const data = await fetchRecentBids();
+      const data = await fetchRecentBids(50, includeDyes);
       setRecentBids(data || []);
       setTotal(data?.length || 0);
       setLoading(false);
       return;
     }
 
-    const params: AuctionFiltersParams = { limit: 50 };
+    const params: AuctionFiltersParams = { limit: 50, include_dyes: includeDyes };
     if (selectedPieces.length > 0) params.pieces = selectedPieces;
     if (binFilter !== "all") params.bin_filter = binFilter;
     if (tier) params.tier = tier as "t1" | "t2" | "t3";
@@ -113,6 +114,18 @@ export default function AuctionsPage() {
               ? "Live feed of recent bids"
               : `Browse ${tab === "active" ? "live" : "completed"} Seymour auctions`}
           </span>
+
+          <Divider />
+
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={includeDyes}
+              onChange={(e) => setIncludeDyes(e.target.checked)}
+              className="w-3.5 h-3.5 accent-[#5865F2] cursor-pointer"
+            />
+            <span className="text-[11px] text-[#888]">Include Dyes</span>
+          </label>
         </div>
 
         {tab !== "recent-bids" && (

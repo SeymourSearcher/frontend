@@ -57,4 +57,5 @@ export interface AuctionFilters {
   sort_order?: "asc" | "desc";
   skip?: number;
   limit?: number;
+  include_dyes?: boolean;
 }

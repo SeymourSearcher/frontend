@@ -374,6 +374,7 @@ function buildAuctionParams(params: AuctionFilters): URLSearchParams {
   if (params.set_name) searchParams.set("set_name", params.set_name);
   if (params.sort_by) searchParams.set("sort_by", params.sort_by);
   if (params.sort_order) searchParams.set("sort_order", params.sort_order);
+  if (params.include_dyes !== undefined) searchParams.set("include_dyes", String(params.include_dyes));
   return searchParams;
 }
 
@@ -409,8 +410,8 @@ export interface RecentBid {
   abs_diff: number;
 }
 
-export async function fetchRecentBids(limit = 50): Promise<RecentBid[] | null> {
-  const res = await fetch(`${API_URL}/auctions/recent-bids?limit=${limit}`);
+export async function fetchRecentBids(limit = 50, includeDyes = true): Promise<RecentBid[] | null> {
+  const res = await fetch(`${API_URL}/auctions/recent-bids?limit=${limit}&include_dyes=${includeDyes}`);
   if (!res.ok) return null;
   return res.json();
 }
