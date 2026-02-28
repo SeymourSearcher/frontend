@@ -36,7 +36,27 @@ export default function AuctionsPage() {
     fetchAuctionSets().then((sets) => setAvailableSets(sets || []));
   }, []);
 
+  function getEffectiveSort(currentTab: Tab) {
+    if (currentTab === "active" && !["timeleft", "price"].includes(sortBy)) {
+      return { sortBy: "timeleft", sortOrder: "asc" as const };
+    }
+    if (currentTab === "ended" && !["timestamp", "price"].includes(sortBy)) {
+      return { sortBy: "timestamp", sortOrder: "desc" as const };
+    }
+    return { sortBy, sortOrder };
+  }
+
   useEffect(() => {
+    if (tab === "active" && !["timeleft", "price"].includes(sortBy)) {
+      setSortBy("timeleft");
+      setSortOrder("asc");
+      return;
+    }
+    if (tab === "ended" && !["timestamp", "price"].includes(sortBy)) {
+      setSortBy("timestamp");
+      setSortOrder("desc");
+      return;
+    }
     loadAuctions();
   }, [tab, selectedPieces, binFilter, tier, setName, minPrice, maxPrice, sortBy, sortOrder, includeDyes]);
 
@@ -57,6 +77,7 @@ export default function AuctionsPage() {
       return;
     }
 
+    const effective = getEffectiveSort(tab);
     const params: AuctionFiltersParams = { limit: 50, include_dyes: includeDyes };
     if (selectedPieces.length > 0) params.pieces = selectedPieces;
     if (binFilter !== "all") params.bin_filter = binFilter;
@@ -64,23 +85,8 @@ export default function AuctionsPage() {
     if (setName) params.set_name = setName;
     if (minPrice) params.min_price = parseInt(minPrice);
     if (maxPrice) params.max_price = parseInt(maxPrice);
-    
-    // Ensure sortBy is valid for the current tab to avoid 422 errors
-    let effectiveSortBy = sortBy;
-    let effectiveSortOrder = sortOrder;
-    if (tab === "active" && !["timeleft", "price"].includes(sortBy)) {
-      effectiveSortBy = "timeleft";
-      effectiveSortOrder = "asc";
-      setSortBy("timeleft");
-      setSortOrder("asc");
-    } else if (tab === "ended" && !["timestamp", "price"].includes(sortBy)) {
-      effectiveSortBy = "timestamp";
-      effectiveSortOrder = "desc";
-      setSortBy("timestamp");
-      setSortOrder("desc");
-    }
-    params.sort_by = effectiveSortBy;
-    params.sort_order = effectiveSortOrder;
+    params.sort_by = effective.sortBy;
+    params.sort_order = effective.sortOrder;
 
     if (tab === "active") {
       const data = await fetchActiveAuctions(params);
