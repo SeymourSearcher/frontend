@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { fetchActiveAuctions, fetchEndedAuctions, fetchRecentBids, fetchAuctionSets } from "@/lib/api";
+import { fetchActiveAuctions, fetchEndedAuctions, fetchRecentBids, fetchAuctionSets, fetchAuctionStats } from "@/lib/api";
 import type { RecentBid } from "@/lib/api";
-import type { ActiveAuction, EndedAuction, AuctionFilters as AuctionFiltersParams } from "@/types/auction";
+import type { ActiveAuction, EndedAuction, AuctionFilters as AuctionFiltersParams, AuctionStats } from "@/types/auction";
 import AuctionsGrid from "./AuctionsGrid";
 import AuctionFilters from "./AuctionFilters";
 import RecentBidsFeed from "./RecentBidsFeed";
+import StatsPanel from "./StatsPanel";
 import { TabButton, Divider } from "./ui";
 
-type Tab = "active" | "ended" | "recent-bids";
+type Tab = "active" | "ended" | "recent-bids" | "stats";
 type BinFilter = "all" | "bin" | "nobin";
 type Tier = "t1" | "t2" | "t3" | "";
 
@@ -17,6 +18,7 @@ export default function AuctionsPage() {
   const [tab, setTab] = useState<Tab>("active");
   const [activeAuctions, setActiveAuctions] = useState<ActiveAuction[]>([]);
   const [endedAuctions, setEndedAuctions] = useState<EndedAuction[]>([]);
+  const [stats, setStats] = useState<AuctionStats | null>(null);
   const [recentBids, setRecentBids] = useState<RecentBid[]>([]);
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
@@ -52,7 +54,7 @@ export default function AuctionsPage() {
       setSortOrder("asc");
       return;
     }
-    if (tab === "ended" && !["timestamp", "price"].includes(sortBy)) {
+    if ((tab === "ended" || tab === "stats") && !["timestamp", "price"].includes(sortBy)) {
       setSortBy("timestamp");
       setSortOrder("desc");
       return;
@@ -66,6 +68,17 @@ export default function AuctionsPage() {
     );
   }
 
+  function buildFilterParams(): AuctionFiltersParams {
+    const params: AuctionFiltersParams = { limit: 50, include_dyes: includeDyes };
+    if (selectedPieces.length > 0) params.pieces = selectedPieces;
+    if (binFilter !== "all") params.bin_filter = binFilter;
+    if (tier) params.tier = tier as "t1" | "t2" | "t3";
+    if (setName) params.set_name = setName;
+    if (minPrice) params.min_price = parseInt(minPrice);
+    if (maxPrice) params.max_price = parseInt(maxPrice);
+    return params;
+  }
+
   async function loadAuctions() {
     setLoading(true);
 
@@ -77,14 +90,17 @@ export default function AuctionsPage() {
       return;
     }
 
+    if (tab === "stats") {
+      const params = buildFilterParams();
+      const data = await fetchAuctionStats(params);
+      setStats(data);
+      setTotal(data?.total || 0);
+      setLoading(false);
+      return;
+    }
+
     const effective = getEffectiveSort(tab);
-    const params: AuctionFiltersParams = { limit: 50, include_dyes: includeDyes };
-    if (selectedPieces.length > 0) params.pieces = selectedPieces;
-    if (binFilter !== "all") params.bin_filter = binFilter;
-    if (tier) params.tier = tier as "t1" | "t2" | "t3";
-    if (setName) params.set_name = setName;
-    if (minPrice) params.min_price = parseInt(minPrice);
-    if (maxPrice) params.max_price = parseInt(maxPrice);
+    const params = buildFilterParams();
     params.sort_by = effective.sortBy;
     params.sort_order = effective.sortOrder;
 
@@ -116,6 +132,9 @@ export default function AuctionsPage() {
             <TabButton active={tab === "recent-bids"} onClick={() => setTab("recent-bids")}>
               Recent Bids
             </TabButton>
+            <TabButton active={tab === "stats"} onClick={() => setTab("stats")}>
+              Stats
+            </TabButton>
           </div>
 
           <Divider />
@@ -123,6 +142,8 @@ export default function AuctionsPage() {
           <span className="text-[#888] text-[11px]">
             {tab === "recent-bids"
               ? "Live feed of recent bids"
+              : tab === "stats"
+              ? "Statistics based on filters"
               : `Browse ${tab === "active" ? "live" : "completed"} Seymour auctions`}
           </span>
 
@@ -164,7 +185,9 @@ export default function AuctionsPage() {
           />
         )}
 
-        {loading ? (
+        {tab === "stats" ? (
+          <StatsPanel stats={stats} loading={loading} />
+        ) : loading ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-[#888] text-[14px]">Loading...</div>
           </div>

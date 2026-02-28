@@ -16,6 +16,7 @@ import type {
   ActiveAuctionListResponse,
   EndedAuctionListResponse,
   AuctionFilters,
+  AuctionStats,
 } from "@/types/auction";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -418,6 +419,15 @@ export async function fetchRecentBids(limit = 50, includeDyes = true): Promise<R
 
 export async function fetchAuctionSets(): Promise<string[] | null> {
   const res = await fetch(`${API_URL}/auctions/sets`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function fetchAuctionStats(
+  params: AuctionFilters = {}
+): Promise<AuctionStats | null> {
+  const query = buildAuctionParams(params).toString();
+  const res = await fetch(`${API_URL}/auctions/stats${query ? `?${query}` : ""}`);
   if (!res.ok) return null;
   return res.json();
 }

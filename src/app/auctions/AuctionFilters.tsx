@@ -9,7 +9,7 @@ import {
 } from "./constants";
 import { FilterButton, PieceToggle, SortSelect, Divider } from "./ui";
 
-type Tab = "active" | "ended";
+type Tab = "active" | "ended" | "stats";
 type BinFilter = "all" | "bin" | "nobin";
 type Tier = "t1" | "t2" | "t3" | "";
 
@@ -59,6 +59,7 @@ export default function AuctionFilters({
   onSortOrderChange,
 }: AuctionFiltersProps) {
   const sortOptions = tab === "active" ? ACTIVE_SORT_OPTIONS : ENDED_SORT_OPTIONS;
+  const isStats = tab === "stats";
 
   return (
     <div className="flex flex-col gap-3 mb-6">
@@ -146,20 +147,23 @@ export default function AuctionFilters({
           />
         </div>
 
-        <Divider />
-
-        <SortSelect
-          sortBy={sortBy}
-          sortOrder={sortOrder}
-          options={sortOptions}
-          onSortByChange={onSortByChange}
-          onSortOrderChange={onSortOrderChange}
-        />
+        {!isStats && (
+          <>
+            <Divider />
+            <SortSelect
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              options={sortOptions}
+              onSortByChange={onSortByChange}
+              onSortOrderChange={onSortOrderChange}
+            />
+          </>
+        )}
 
         <div className="flex-1" />
 
         <span className="text-[#666] text-[11px]">
-          {total} {tab === "active" ? "active" : "ended"} auctions
+          {total} {tab === "active" ? "active" : tab === "stats" ? "ended (for stats)" : "ended"} auctions
         </span>
       </div>
     </div>

@@ -59,3 +59,24 @@ export interface AuctionFilters {
   limit?: number;
   include_dyes?: boolean;
 }
+
+export interface PriceBucket {
+  label: string;
+  count: number;
+  min_price: number;
+  max_price: number;
+}
+
+export interface AuctionStats {
+  total: number;
+  avg_price: number;
+  median_price: number;
+  total_volume: number;
+  bin_count: number;
+  auction_count: number;
+  t1_count: number;
+  t2_count: number;
+  t3_count: number;
+  price_distribution: PriceBucket[];
+  hourly_activity: number[];
+}
