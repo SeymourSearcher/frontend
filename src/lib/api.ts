@@ -137,6 +137,14 @@ export async function fetchAvailableFilters(filter: string, incompleteOnly = fal
   return request<string[]>(`/seymours/available-filters?${params}`);
 }
 
+export async function fetchUserHexCodes(): Promise<string[] | null> {
+  return request<string[]>("/seymours/hex-codes");
+}
+
+export async function fetchUserSeymourHexes(): Promise<[string, number][] | null> {
+  return request<[string, number][]>("/seymours/hex-codes?with_pieces=true");
+}
+
 export interface RankingUser {
   discord_id: string;
   username: string;
@@ -430,4 +438,39 @@ export async function fetchAuctionStats(
   const res = await fetch(`${API_URL}/auctions/stats${query ? `?${query}` : ""}`);
   if (!res.ok) return null;
   return res.json();
+}
+
+export interface VisualizationRequest {
+  min_de: number;
+  max_de: number;
+  input_hex_codes?: string[];
+  input_seymours?: [string, number][];
+  include_dyes: boolean;
+  max_points?: number;
+}
+
+export interface VisualizationStats {
+  count: number;
+  total: number;
+  percentage: number;
+}
+
+export async function fetchVisualizationStats(data: VisualizationRequest): Promise<VisualizationStats | null> {
+  const res = await fetch(`${API_URL}/visualization/stats`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function fetchVisualizationHtml(data: VisualizationRequest): Promise<string | null> {
+  const res = await fetch(`${API_URL}/visualization/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) return null;
+  return res.text();
 }

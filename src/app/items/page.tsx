@@ -1,14 +1,17 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useSeymours } from "@/hooks/useSeymours";
 import { useSellMode } from "@/hooks/useSellMode";
 import { useAuth } from "@/hooks/useAuth";
+import { fetchUserHexCodes, fetchUserSeymourHexes } from "@/lib/api";
 import SeymourCard from "./SeymourCard";
 import SeymourChip from "./SeymourChip";
 import MissingBadge from "./MissingBadge";
 import MissingItem from "./MissingItem";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 import SellActionBar from "./SellActionBar";
+import VisualizeModal from "./VisualizeModal";
 
 export default function ItemsPage() {
   const { user } = useAuth();
@@ -56,6 +59,19 @@ export default function ItemsPage() {
     dismissSuccess,
     submitSellOrders,
   } = useSellMode();
+
+  const [showVisualizeModal, setShowVisualizeModal] = useState(false);
+  const [userHexes, setUserHexes] = useState<string[]>([]);
+  const [userSeymours, setUserSeymours] = useState<[string, number][]>([]);
+
+  useEffect(() => {
+    fetchUserHexCodes().then(hexes => {
+      if (hexes) setUserHexes(hexes);
+    });
+    fetchUserSeymourHexes().then(seymours => {
+      if (seymours) setUserSeymours(seymours);
+    });
+  }, []);
 
   return (
     <main className={`min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif] ${sellMode ? "pb-24" : ""}`}>
@@ -111,6 +127,12 @@ export default function ItemsPage() {
               {sellMode ? "Exit Sell Mode" : "Sell"}
             </button>
           )}
+          <button
+            onClick={() => setShowVisualizeModal(true)}
+            className="px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 bg-[#333] text-[#ccc] hover:bg-[#444]"
+          >
+            Visualize
+          </button>
         </div>
         <div className="flex items-center gap-2 min-w-[200px]">
           {canIncludeDyes && (
@@ -213,6 +235,8 @@ export default function ItemsPage() {
           error={error}
         />
       )}
+
+      <VisualizeModal isOpen={showVisualizeModal} onClose={() => setShowVisualizeModal(false)} userHexes={userHexes} userSeymours={userSeymours} />
     </main>
   );
 }
