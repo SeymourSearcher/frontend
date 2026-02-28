@@ -37,16 +37,6 @@ export default function AuctionsPage() {
   }, []);
 
   useEffect(() => {
-    if (tab === "active" && !["timeleft", "price"].includes(sortBy)) {
-      setSortBy("timeleft");
-      setSortOrder("asc");
-    } else if (tab === "ended" && !["timestamp", "price"].includes(sortBy)) {
-      setSortBy("timestamp");
-      setSortOrder("desc");
-    }
-  }, [tab, sortBy]);
-
-  useEffect(() => {
     loadAuctions();
   }, [tab, selectedPieces, binFilter, tier, setName, minPrice, maxPrice, sortBy, sortOrder, includeDyes]);
 
@@ -74,8 +64,23 @@ export default function AuctionsPage() {
     if (setName) params.set_name = setName;
     if (minPrice) params.min_price = parseInt(minPrice);
     if (maxPrice) params.max_price = parseInt(maxPrice);
-    params.sort_by = sortBy;
-    params.sort_order = sortOrder;
+    
+    // Ensure sortBy is valid for the current tab to avoid 422 errors
+    let effectiveSortBy = sortBy;
+    let effectiveSortOrder = sortOrder;
+    if (tab === "active" && !["timeleft", "price"].includes(sortBy)) {
+      effectiveSortBy = "timeleft";
+      effectiveSortOrder = "asc";
+      setSortBy("timeleft");
+      setSortOrder("asc");
+    } else if (tab === "ended" && !["timestamp", "price"].includes(sortBy)) {
+      effectiveSortBy = "timestamp";
+      effectiveSortOrder = "desc";
+      setSortBy("timestamp");
+      setSortOrder("desc");
+    }
+    params.sort_by = effectiveSortBy;
+    params.sort_order = effectiveSortOrder;
 
     if (tab === "active") {
       const data = await fetchActiveAuctions(params);
