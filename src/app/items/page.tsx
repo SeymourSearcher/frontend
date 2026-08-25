@@ -12,6 +12,7 @@ import MissingItem from "./MissingItem";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 import SellActionBar from "./SellActionBar";
 import VisualizeModal from "./VisualizeModal";
+import { PieceIndex } from "@/lib/pieces";
 
 export default function ItemsPage() {
   const { user } = useAuth();
@@ -62,7 +63,7 @@ export default function ItemsPage() {
 
   const [showVisualizeModal, setShowVisualizeModal] = useState(false);
   const [userHexes, setUserHexes] = useState<string[]>([]);
-  const [userSeymours, setUserSeymours] = useState<[string, number][]>([]);
+  const [userSeymours, setUserSeymours] = useState<[string, PieceIndex][]>([]);
 
   useEffect(() => {
     fetchUserHexCodes().then(hexes => {
@@ -202,7 +203,7 @@ export default function ItemsPage() {
                   ))}
                   {incompleteOnly &&
                     missing.map((piece) => (
-                      <MissingItem key={piece} pieceName={piece} hexColor={targetHex} />
+                      <MissingItem key={piece} piece={piece} hexColor={targetHex} />
                     ))}
                 </div>
               </div>

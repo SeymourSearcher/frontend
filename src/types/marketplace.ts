@@ -1,3 +1,5 @@
+import { PieceIndex } from "@/lib/pieces";
+
 export enum OrderType {
   SET_PIECE = "set_piece",
   HEX_PATTERN = "hex_pattern",
@@ -23,7 +25,7 @@ export enum Tier {
 
 export interface SetCriteria {
   set_name: string;
-  piece_types: number[];
+  piece_types: PieceIndex[];
   tier: Tier;
 }
 
@@ -31,7 +33,7 @@ export interface HexCriteria {
   match_type: HexMatchType;
   hex_value: string;
   max_delta_e: number | null;
-  piece_type: number | null;
+  piece_type: PieceIndex | null;
 }
 
 export interface OrderUser {
@@ -60,7 +62,7 @@ export interface BuyOrderListResponse {
 
 export interface MatchingSeymour {
   id: number;
-  item_name: number;
+  item_name: PieceIndex;
   hex_color: string;
 }
 
@@ -74,7 +76,7 @@ export type SortOrder = "asc" | "desc";
 
 export interface SetCriteriaCreate {
   set_name: string;
-  piece_types: number[];
+  piece_types: PieceIndex[];
   tier: Tier;
 }
 
@@ -82,7 +84,7 @@ export interface HexCriteriaCreate {
   match_type: HexMatchType;
   hex_value: string;
   max_delta_e?: number | null;
-  piece_type?: number | null;
+  piece_type?: PieceIndex | null;
 }
 
 export interface BuyOrderCreate {
@@ -100,7 +102,7 @@ export interface SellOrderMatch {
 
 export interface SellOrderSeymour {
   id: number;
-  item_name: number;
+  item_name: PieceIndex;
   hex_color: string;
   match: SellOrderMatch | null;
 }
@@ -127,7 +129,7 @@ export interface SellOrderCreate {
 }
 
 export interface SellOrderFilters {
-  piece_type?: number;
+  piece_type?: PieceIndex;
   hex_color?: string;
   min_price?: number;
   max_price?: number;

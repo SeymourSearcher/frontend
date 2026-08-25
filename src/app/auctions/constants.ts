@@ -1,5 +1,3 @@
-export const PIECE_NAMES = ["Helmet", "Chestplate", "Leggings", "Boots"];
-
 export const TIER_OPTIONS = [
   { value: "", label: "All Tiers" },
   { value: "t1", label: "T1" },

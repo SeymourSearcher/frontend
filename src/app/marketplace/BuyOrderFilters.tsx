@@ -3,7 +3,7 @@
 import { OrderType, SortBy, SortOrder, Tier } from "@/types/marketplace";
 import { FilterButton, PieceToggle } from "./ui";
 import SortSelect from "./SortSelect";
-import { PIECE_NAMES } from "./constants";
+import { PIECE_INDEXES, PieceIndex } from "@/lib/pieces";
 
 const TIER_LABELS: Record<Tier, string> = {
   [Tier.T1]: "T1",
@@ -15,14 +15,14 @@ interface BuyOrderFiltersProps {
   filterType: OrderType | null;
   filterSet: string | null;
   filterTier: Tier | null;
-  filterPieces: number[];
+  filterPieces: PieceIndex[];
   sortBy: SortBy;
   sortOrder: SortOrder;
   sets: string[];
   onFilterTypeChange: (type: OrderType | null) => void;
   onFilterSetChange: (set: string | null) => void;
   onFilterTierChange: (tier: Tier | null) => void;
-  onTogglePiece: (piece: number) => void;
+  onTogglePiece: (piece: PieceIndex) => void;
   onClearPieces: () => void;
   onSortByChange: (sortBy: SortBy) => void;
   onSortOrderChange: (sortOrder: SortOrder) => void;
@@ -120,12 +120,12 @@ export default function BuyOrderFilters({
           </div>
 
           <div className="flex items-center gap-1">
-            {PIECE_NAMES.map((_, idx) => (
+            {PIECE_INDEXES.map((piece) => (
               <PieceToggle
-                key={idx}
-                pieceIndex={idx}
-                selected={filterPieces.includes(idx)}
-                onToggle={() => onTogglePiece(idx)}
+                key={piece}
+                pieceIndex={piece}
+                selected={filterPieces.includes(piece)}
+                onToggle={() => onTogglePiece(piece)}
               />
             ))}
             {filterPieces.length > 0 && (

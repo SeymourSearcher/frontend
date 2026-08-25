@@ -18,6 +18,9 @@ import type {
   AuctionFilters,
   AuctionStats,
 } from "@/types/auction";
+import type { Seymour } from "@/types/seymour";
+import type { Stats, RankingUser } from "@/types/stats";
+import type { PieceIndex } from "@/lib/pieces";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -80,25 +83,14 @@ export async function uploadSeymours(file: File) {
   return res.json() as Promise<{ imported: number; skipped: number }>;
 }
 
-export async function fetchGlobalStats() {
+export async function fetchGlobalStats(): Promise<Stats | null> {
   const res = await fetch(`${API_URL}/stats/`);
   if (!res.ok) return null;
   return res.json();
 }
 
 export async function fetchUserStats() {
-  return request<{
-    stars: number;
-    t1: number;
-    t2: number;
-    t3: number;
-    words: number;
-    dupes: number;
-    total_sets: number;
-    dyed_sets: number;
-    custom_sets: number;
-    total_seymours: number;
-  }>("/stats/me");
+  return request<Stats>("/stats/me");
 }
 
 export async function fetchUserSeymours(filter?: string, subFilter?: string, skip = 0, limit = 100, incompleteOnly = false, includeDyes = false, sort?: string) {
@@ -118,12 +110,7 @@ export async function fetchUserSeymours(filter?: string, subFilter?: string, ski
   if (sort) {
     params.set("sort", sort);
   }
-  return request<{
-    id: number;
-    item_name: string;
-    hex_color: string;
-    match?: { target_name: string; target_hex: string; delta_e: number; missing?: string[] } | null;
-  }[]>(`/seymours/?${params}`);
+  return request<Seymour[]>(`/seymours/?${params}`);
 }
 
 export async function fetchAvailableFilters(filter: string, incompleteOnly = false, includeDyes = false) {
@@ -141,24 +128,8 @@ export async function fetchUserHexCodes(): Promise<string[] | null> {
   return request<string[]>("/seymours/hex-codes");
 }
 
-export async function fetchUserSeymourHexes(): Promise<[string, number][] | null> {
-  return request<[string, number][]>("/seymours/hex-codes?with_pieces=true");
-}
-
-export interface RankingUser {
-  discord_id: string;
-  username: string;
-  avatar_hash: string | null;
-  stars: number;
-  t1: number;
-  t2: number;
-  t3: number;
-  words: number;
-  dupes: number;
-  total_sets: number;
-  dyed_sets: number;
-  custom_sets: number;
-  total_seymours: number;
+export async function fetchUserSeymourHexes(): Promise<[string, PieceIndex][] | null> {
+  return request<[string, PieceIndex][]>("/seymours/hex-codes?with_pieces=true");
 }
 
 export async function fetchRankings() {
@@ -175,10 +146,10 @@ export interface HexUser {
 }
 
 export interface HexMatch {
-  item_name: string;
+  target_name: string;
   target_hex: string;
   delta_e: number;
-  pieces: string[];
+  pieces: PieceIndex[];
   users_by_tier: {
     t1: HexUser[];
     t2: HexUser[];
@@ -304,7 +275,7 @@ export async function fetchAvailableSets(): Promise<string[] | null> {
   return res.json();
 }
 
-export async function fetchSetsPieces(): Promise<Record<string, number[]> | null> {
+export async function fetchSetsPieces(): Promise<Record<string, PieceIndex[]> | null> {
   const res = await fetch(`${API_URL}/marketplace/sets-pieces`);
   if (!res.ok) return null;
   return res.json();
@@ -412,7 +383,7 @@ export interface RecentBid {
   amount: number;
   timestamp: number;
   hex_color: string;
-  piece: number;
+  piece: PieceIndex;
   target_hex: string;
   set_name: string | null;
   delta_e: number;
@@ -444,7 +415,7 @@ export interface VisualizationRequest {
   min_de: number;
   max_de: number;
   input_hex_codes?: string[];
-  input_seymours?: [string, number][];
+  input_seymours?: [string, PieceIndex][];
   include_dyes: boolean;
   max_points?: number;
 }

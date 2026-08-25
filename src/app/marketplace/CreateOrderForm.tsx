@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { OrderType, HexMatchType, Tier, BuyOrderCreate } from "@/types/marketplace";
-import { PIECE_NAMES } from "./constants";
+import { PIECE_INDEXES, PIECE_SLOT_NAMES, PieceIndex } from "@/lib/pieces";
 
 interface CreateOrderFormProps {
   sets: string[];
-  setPieces: Record<string, number[]>;
+  setPieces: Record<string, PieceIndex[]>;
   onSubmit: (data: BuyOrderCreate) => Promise<void>;
   onClose: () => void;
 }
@@ -49,27 +49,23 @@ function PieceSelector({
   onToggle,
   allowMultiple = true,
 }: {
-  selectedPieces: number[];
-  availablePieces: number[];
-  onToggle: (piece: number) => void;
+  selectedPieces: PieceIndex[];
+  availablePieces: PieceIndex[];
+  onToggle: (piece: PieceIndex) => void;
   allowMultiple?: boolean;
 }) {
   return (
     <div className="grid grid-cols-4 gap-2">
-      {PIECE_NAMES.map((name, idx) => {
-        const isAvailable = availablePieces.includes(idx);
-        const isSelected = selectedPieces.includes(idx);
-        return (
-          <ToggleButton
-            key={idx}
-            selected={isSelected}
-            disabled={!isAvailable}
-            onClick={() => onToggle(idx)}
-          >
-            {name}
-          </ToggleButton>
-        );
-      })}
+      {PIECE_INDEXES.map((piece) => (
+        <ToggleButton
+          key={piece}
+          selected={selectedPieces.includes(piece)}
+          disabled={!availablePieces.includes(piece)}
+          onClick={() => onToggle(piece)}
+        >
+          {PIECE_SLOT_NAMES[piece]}
+        </ToggleButton>
+      ))}
     </div>
   );
 }
@@ -80,9 +76,9 @@ function HexPieceSelector({
   onToggle,
   onToggleAny,
 }: {
-  selectedPieces: number[];
+  selectedPieces: PieceIndex[];
   anySelected: boolean;
-  onToggle: (piece: number) => void;
+  onToggle: (piece: PieceIndex) => void;
   onToggleAny: () => void;
 }) {
   return (
@@ -90,14 +86,14 @@ function HexPieceSelector({
       <ToggleButton selected={anySelected} onClick={onToggleAny}>
         Any
       </ToggleButton>
-      {PIECE_NAMES.map((name, idx) => (
+      {PIECE_INDEXES.map((piece) => (
         <ToggleButton
-          key={idx}
-          selected={selectedPieces.includes(idx)}
-          onClick={() => onToggle(idx)}
+          key={piece}
+          selected={selectedPieces.includes(piece)}
+          onClick={() => onToggle(piece)}
           disabled={anySelected}
         >
-          {name}
+          {PIECE_SLOT_NAMES[piece]}
         </ToggleButton>
       ))}
     </div>
@@ -113,19 +109,19 @@ export default function CreateOrderForm({
   const [orderType, setOrderType] = useState<OrderType>(OrderType.SET_PIECE);
   const [price, setPrice] = useState("");
   const [setName, setSetName] = useState(sets[0] || "");
-  const [selectedPieceTypes, setSelectedPieceTypes] = useState<number[]>([]);
+  const [selectedPieceTypes, setSelectedPieceTypes] = useState<PieceIndex[]>([]);
   const [tier, setTier] = useState<Tier>(Tier.T1);
   const [hexMatchType, setHexMatchType] = useState<HexMatchType>(HexMatchType.EXACT);
   const [hexValue, setHexValue] = useState("");
   const [maxDeltaE, setMaxDeltaE] = useState("");
-  const [hexPieceTypes, setHexPieceTypes] = useState<number[]>([]);
+  const [hexPieceTypes, setHexPieceTypes] = useState<PieceIndex[]>([]);
   const [hexAnyPiece, setHexAnyPiece] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const availablePieces = setPieces[setName] || [];
 
-  function handlePieceToggle(piece: number) {
+  function handlePieceToggle(piece: PieceIndex) {
     setSelectedPieceTypes((prev) =>
       prev.includes(piece)
         ? prev.filter((p) => p !== piece)
@@ -133,7 +129,7 @@ export default function CreateOrderForm({
     );
   }
 
-  function handleHexPieceToggle(piece: number) {
+  function handleHexPieceToggle(piece: PieceIndex) {
     setHexPieceTypes((prev) =>
       prev.includes(piece)
         ? prev.filter((p) => p !== piece)
@@ -200,7 +196,7 @@ export default function CreateOrderForm({
         return;
       }
 
-      const piecesToCreate = hexAnyPiece ? [null] : hexPieceTypes;
+      const piecesToCreate: (PieceIndex | null)[] = hexAnyPiece ? [null] : hexPieceTypes;
 
       setSubmitting(true);
       try {

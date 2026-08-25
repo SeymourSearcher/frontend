@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Seymour } from "@/types/seymour";
+import { PIECE_ITEM_NAMES } from "@/lib/pieces";
 
 interface SeymourChipProps {
   seymour: Seymour;
@@ -30,7 +31,7 @@ export default function SeymourChip({ seymour, sellMode, isSelected, onSelect }:
           <span className="text-[11px] font-bold" style={{ color: `#${seymour.hex_color}` }}>
             #{seymour.hex_color}
           </span>
-          <span className="text-[#888] text-[9px]">{seymour.item_name}</span>
+          <span className="text-[#888] text-[9px]">{PIECE_ITEM_NAMES[seymour.item_name]}</span>
           {seymour.match && <span className="text-[#666] text-[8px]">ΔE: {seymour.match.delta_e}</span>}
         </div>
       </div>
@@ -45,7 +46,7 @@ export default function SeymourChip({ seymour, sellMode, isSelected, onSelect }:
           <span className="text-[11px] font-bold" style={{ color: `#${seymour.hex_color}` }}>
             #{seymour.hex_color}
           </span>
-          <span className="text-[#888] text-[9px]">{seymour.item_name}</span>
+          <span className="text-[#888] text-[9px]">{PIECE_ITEM_NAMES[seymour.item_name]}</span>
           {seymour.match && <span className="text-[#666] text-[8px]">ΔE: {seymour.match.delta_e}</span>}
         </div>
       </div>

@@ -1,5 +1,3 @@
-export const PIECE_NAMES = ["Helmet", "Chestplate", "Leggings", "Boots"];
-
 export function formatTimeRemaining(expiresAt: string): string {
   const now = new Date();
   const expires = new Date(expiresAt);

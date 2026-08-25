@@ -2,12 +2,12 @@
 
 import type { ActiveAuction, EndedAuction } from "@/types/auction";
 import {
-  PIECE_NAMES,
   TIER_COLORS,
   formatPrice,
   formatTimeRemaining,
   formatTimestamp,
 } from "./constants";
+import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 
 interface AuctionCardProps {
   auction: ActiveAuction | EndedAuction;
@@ -63,7 +63,7 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
             {auction.is_bin && <BinBadge />}
             {auction.tier && <TierBadge tier={auction.tier} />}
           </div>
-          <span className="text-[#888] text-[10px]">{PIECE_NAMES[auction.piece]}</span>
+          <span className="text-[#888] text-[10px]">{PIECE_SLOT_NAMES[auction.piece]}</span>
           <div className="flex items-center gap-1.5 mt-1">
             <ColorSwatch hex={auction.target_hex} size="sm" />
             <span className="text-[9px] text-[#666]">

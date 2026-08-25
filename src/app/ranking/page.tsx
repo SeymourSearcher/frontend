@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { fetchRankings, RankingUser } from "@/lib/api";
+import { fetchRankings } from "@/lib/api";
+import { RankingUser } from "@/types/stats";
 
 type SortKey = "total" | "t1" | "t2" | "t3" | "words" | "dupes" | "sets" | "dyed";
 

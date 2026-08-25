@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Seymour } from "@/types/seymour";
+import { PIECE_ITEM_NAMES } from "@/lib/pieces";
 
 interface SeymourCardProps {
   seymour: Seymour;
@@ -32,7 +33,7 @@ export default function SeymourCard({ seymour, sellMode, isSelected, onSelect }:
         <span className="text-[11px] mb-1 font-bold" style={{ color: `#${seymour.hex_color}` }}>
           #{seymour.hex_color}
         </span>
-        <span className="text-[#888] text-[9px] mb-1">{seymour.item_name}</span>
+        <span className="text-[#888] text-[9px] mb-1">{PIECE_ITEM_NAMES[seymour.item_name]}</span>
         {seymour.match && (
           <div className="text-center mt-1">
             <span className="text-[#5865F2] text-[9px] block">{seymour.match.target_name}</span>
@@ -53,7 +54,7 @@ export default function SeymourCard({ seymour, sellMode, isSelected, onSelect }:
         <span className="text-[11px] mb-1 font-bold" style={{ color: `#${seymour.hex_color}` }}>
           #{seymour.hex_color}
         </span>
-        <span className="text-[#888] text-[9px] mb-1">{seymour.item_name}</span>
+        <span className="text-[#888] text-[9px] mb-1">{PIECE_ITEM_NAMES[seymour.item_name]}</span>
         {seymour.match && (
           <div className="text-center mt-1">
             <span className="text-[#5865F2] text-[9px] block">{seymour.match.target_name}</span>

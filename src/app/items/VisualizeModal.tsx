@@ -7,6 +7,7 @@ import {
   VisualizationRequest,
   VisualizationStats,
 } from "@/lib/api";
+import { PieceIndex } from "@/lib/pieces";
 
 type HexMode = "my" | "all";
 
@@ -14,7 +15,7 @@ interface Props {
   isOpen: boolean;
   onClose: () => void;
   userHexes?: string[];
-  userSeymours?: [string, number][];
+  userSeymours?: [string, PieceIndex][];
 }
 
 export default function VisualizeModal({ isOpen, onClose, userHexes = [], userSeymours = [] }: Props) {

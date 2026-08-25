@@ -1,6 +1,7 @@
 "use client";
 
 import { HexMatch } from "@/lib/api";
+import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 import { TIER_CONFIG, TierKey } from "./tierConfig";
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -38,7 +39,7 @@ export function ClosestMatchSidebar({ match, searchHex }: { match: HexMatch; sea
       </div>
 
       <div className="text-center mb-4">
-        <div className="text-[#f0f0f0] text-[14px] font-bold">{match.item_name}</div>
+        <div className="text-[#f0f0f0] text-[14px] font-bold">{match.target_name}</div>
         <div className="text-[11px] font-bold mt-1" style={{ color: `#${match.target_hex}` }}>
           #{match.target_hex}
         </div>
@@ -56,7 +57,7 @@ export function ClosestMatchSidebar({ match, searchHex }: { match: HexMatch; sea
       </div>
 
       <div className="text-[10px] text-[#888] mb-3">
-        Pieces: {match.pieces.join(", ")}
+        Pieces: {match.pieces.map((p) => PIECE_SLOT_NAMES[p]).join(", ")}
       </div>
 
       <div className="border-t border-[#333] pt-3">

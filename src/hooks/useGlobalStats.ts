@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { fetchGlobalStats } from "@/lib/api";
-import { GlobalStats } from "@/types/stats";
+import { Stats } from "@/types/stats";
 
 export function useGlobalStats() {
-  const [stats, setStats] = useState<GlobalStats | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,4 +15,3 @@ export function useGlobalStats() {
 
   return { stats, loading };
 }
-

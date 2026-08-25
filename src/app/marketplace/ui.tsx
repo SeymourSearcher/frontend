@@ -1,6 +1,6 @@
 "use client";
 
-import { PIECE_NAMES } from "./constants";
+import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 
 export function FilterButton({
   active,
@@ -113,7 +113,7 @@ export function PieceToggle({
           : "bg-[#2a2a2a] text-[#888] hover:bg-[#333]"
       }`}
     >
-      {PIECE_NAMES[pieceIndex]}
+      {PIECE_SLOT_NAMES[pieceIndex]}
     </button>
   );
 }

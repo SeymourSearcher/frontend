@@ -29,6 +29,7 @@ import BuyOrderFilters from "./BuyOrderFilters";
 import SellOrderFilters from "./SellOrderFilters";
 import BuyOrdersGrid from "./BuyOrdersGrid";
 import SellOrdersGrid from "./SellOrdersGrid";
+import { PieceIndex } from "@/lib/pieces";
 import {
   ModeToggle,
   TabButton,
@@ -52,14 +53,14 @@ export default function MarketplacePage() {
   const [mySellOrders, setMySellOrders] = useState<SellOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [sets, setSets] = useState<string[]>([]);
-  const [setPieces, setSetPieces] = useState<Record<string, number[]>>({});
+  const [setPieces, setSetPieces] = useState<Record<string, PieceIndex[]>>({});
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showSeymourPicker, setShowSeymourPicker] = useState(false);
   const [filterType, setFilterType] = useState<OrderType | null>(null);
   const [filterSet, setFilterSet] = useState<string | null>(null);
   const [filterTier, setFilterTier] = useState<Tier | null>(null);
-  const [filterPieces, setFilterPieces] = useState<number[]>([]);
-  const [sellFilterPiece, setSellFilterPiece] = useState<number | null>(null);
+  const [filterPieces, setFilterPieces] = useState<PieceIndex[]>([]);
+  const [sellFilterPiece, setSellFilterPiece] = useState<PieceIndex | null>(null);
   const [buySortBy, setBuySortBy] = useState<SortBy>("price");
   const [buySortOrder, setBuySortOrder] = useState<SortOrder>("desc");
   const [sellSortBy, setSellSortBy] = useState<SortBy>("delta_e");
@@ -102,7 +103,7 @@ export default function MarketplacePage() {
     }
   }, [sellFilterPiece, sellSortBy, sellSortOrder]);
 
-  function togglePiece(piece: number) {
+  function togglePiece(piece: PieceIndex) {
     setFilterPieces((prev) =>
       prev.includes(piece) ? prev.filter((p) => p !== piece) : [...prev, piece]
     );

@@ -1,4 +1,5 @@
-export interface GlobalStats {
+/** Shape returned by /stats/, /stats/me and (with the user fields) /stats/rankings. */
+export interface Stats {
   stars: number;
   t1: number;
   t2: number;
@@ -7,7 +8,11 @@ export interface GlobalStats {
   dupes: number;
   total_sets: number;
   dyed_sets: number;
-  custom_sets: number;
   total_seymours: number;
 }
 
+export interface RankingUser extends Stats {
+  discord_id: string;
+  username: string;
+  avatar_hash: string | null;
+}

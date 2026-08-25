@@ -1,6 +1,7 @@
 "use client";
 
 import { HexMatch } from "@/lib/api";
+import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 import { TierBadge } from "./TierBadge";
 import { TierSection } from "./TierSection";
 
@@ -17,7 +18,7 @@ export function MatchCard({ match, rank }: { match: HexMatch; rank: number }) {
             style={{ backgroundColor: `#${match.target_hex}` }}
           />
           <div className="flex-1 min-w-0">
-            <h3 className="text-[#f0f0f0] text-[14px] truncate">{match.item_name}</h3>
+            <h3 className="text-[#f0f0f0] text-[14px] truncate">{match.target_name}</h3>
             <div className="flex items-center gap-2">
               <span className="text-[11px] font-bold" style={{ color: `#${match.target_hex}` }}>
                 #{match.target_hex}
@@ -33,7 +34,7 @@ export function MatchCard({ match, rank }: { match: HexMatch; rank: number }) {
         </div>
       </div>
       <div className="text-[10px] text-[#888] mb-3 break-words">
-        Pieces: {match.pieces.join(", ")}
+        Pieces: {match.pieces.map((p) => PIECE_SLOT_NAMES[p]).join(", ")}
       </div>
       <TierSection tier="t1" users={match.users_by_tier.t1} />
       <TierSection tier="t2" users={match.users_by_tier.t2} />

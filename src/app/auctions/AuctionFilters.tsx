@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  PIECE_NAMES,
   TIER_OPTIONS,
   BIN_OPTIONS,
   ACTIVE_SORT_OPTIONS,
   ENDED_SORT_OPTIONS,
 } from "./constants";
 import { FilterButton, PieceToggle, SortSelect, Divider } from "./ui";
+import { PIECE_INDEXES, PieceIndex } from "@/lib/pieces";
 
 type Tab = "active" | "ended" | "stats";
 type BinFilter = "all" | "bin" | "nobin";
@@ -15,7 +15,7 @@ type Tier = "t1" | "t2" | "t3" | "";
 
 interface AuctionFiltersProps {
   tab: Tab;
-  selectedPieces: number[];
+  selectedPieces: PieceIndex[];
   binFilter: BinFilter;
   tier: Tier;
   setName: string;
@@ -25,7 +25,7 @@ interface AuctionFiltersProps {
   sortOrder: "asc" | "desc";
   availableSets: string[];
   total: number;
-  onTogglePiece: (piece: number) => void;
+  onTogglePiece: (piece: PieceIndex) => void;
   onClearPieces: () => void;
   onBinFilterChange: (filter: BinFilter) => void;
   onTierChange: (tier: Tier) => void;
@@ -65,12 +65,12 @@ export default function AuctionFilters({
     <div className="flex flex-col gap-3 mb-6">
       <div className="flex flex-wrap items-center gap-3">
         <div className="flex items-center gap-1">
-          {PIECE_NAMES.map((_, idx) => (
+          {PIECE_INDEXES.map((piece) => (
             <PieceToggle
-              key={idx}
-              pieceIndex={idx}
-              selected={selectedPieces.includes(idx)}
-              onToggle={() => onTogglePiece(idx)}
+              key={piece}
+              pieceIndex={piece}
+              selected={selectedPieces.includes(piece)}
+              onToggle={() => onTogglePiece(piece)}
             />
           ))}
           {selectedPieces.length > 0 && (

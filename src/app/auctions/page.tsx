@@ -9,6 +9,7 @@ import AuctionFilters from "./AuctionFilters";
 import RecentBidsFeed from "./RecentBidsFeed";
 import StatsPanel from "./StatsPanel";
 import { TabButton, Divider } from "./ui";
+import { PieceIndex } from "@/lib/pieces";
 
 type Tab = "active" | "ended" | "recent-bids" | "stats";
 type BinFilter = "all" | "bin" | "nobin";
@@ -23,7 +24,7 @@ export default function AuctionsPage() {
   const [loading, setLoading] = useState(true);
   const [total, setTotal] = useState(0);
 
-  const [selectedPieces, setSelectedPieces] = useState<number[]>([]);
+  const [selectedPieces, setSelectedPieces] = useState<PieceIndex[]>([]);
   const [binFilter, setBinFilter] = useState<BinFilter>("all");
   const [tier, setTier] = useState<Tier>("");
   const [setName, setSetName] = useState("");
@@ -62,7 +63,7 @@ export default function AuctionsPage() {
     loadAuctions();
   }, [tab, selectedPieces, binFilter, tier, setName, minPrice, maxPrice, sortBy, sortOrder, includeDyes]);
 
-  function togglePiece(piece: number) {
+  function togglePiece(piece: PieceIndex) {
     setSelectedPieces((prev) =>
       prev.includes(piece) ? prev.filter((p) => p !== piece) : [...prev, piece]
     );

@@ -1,12 +1,12 @@
 "use client";
 
-import { GlobalStats } from "@/types/stats";
+import { Stats } from "@/types/stats";
 import { StarIcon } from "@/components/icons/StarIcon";
 import { StatItem } from "@/components/StatItem";
 import { HexSearchInput } from "@/components/HexSearchInput";
 
 interface HomeContentProps {
-  stats: GlobalStats | null;
+  stats: Stats | null;
 }
 
 export function HomeContent({ stats }: HomeContentProps) {

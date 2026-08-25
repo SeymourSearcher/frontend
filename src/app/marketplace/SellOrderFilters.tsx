@@ -3,13 +3,13 @@
 import { SortBy, SortOrder } from "@/types/marketplace";
 import { FilterButton } from "./ui";
 import SortSelect from "./SortSelect";
-import { PIECE_NAMES } from "./constants";
+import { PIECE_INDEXES, PIECE_SLOT_NAMES, PieceIndex } from "@/lib/pieces";
 
 interface SellOrderFiltersProps {
-  sellFilterPiece: number | null;
+  sellFilterPiece: PieceIndex | null;
   sortBy: SortBy;
   sortOrder: SortOrder;
-  onFilterPieceChange: (piece: number | null) => void;
+  onFilterPieceChange: (piece: PieceIndex | null) => void;
   onSortByChange: (sortBy: SortBy) => void;
   onSortOrderChange: (sortOrder: SortOrder) => void;
 }
@@ -31,13 +31,13 @@ export default function SellOrderFilters({
         >
           All
         </FilterButton>
-        {PIECE_NAMES.map((name, idx) => (
+        {PIECE_INDEXES.map((piece) => (
           <FilterButton
-            key={idx}
-            active={sellFilterPiece === idx}
-            onClick={() => onFilterPieceChange(idx)}
+            key={piece}
+            active={sellFilterPiece === piece}
+            onClick={() => onFilterPieceChange(piece)}
           >
-            {name}
+            {PIECE_SLOT_NAMES[piece]}
           </FilterButton>
         ))}
       </div>

@@ -1,7 +1,8 @@
 "use client";
 
 import type { RecentBid } from "@/lib/api";
-import { PIECE_NAMES, formatPrice, formatTimestamp } from "./constants";
+import { formatPrice, formatTimestamp } from "./constants";
+import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 
 function ColorSwatch({ hex }: { hex: string }) {
   return (
@@ -22,7 +23,7 @@ function BidRow({ bid }: { bid: RecentBid }) {
           <span className="text-[12px] font-medium" style={{ color: `#${bid.hex_color}` }}>
             #{bid.hex_color}
           </span>
-          <span className="text-[10px] text-[#666]">{PIECE_NAMES[bid.piece]}</span>
+          <span className="text-[10px] text-[#666]">{PIECE_SLOT_NAMES[bid.piece]}</span>
           {bid.set_name && (
             <span className="text-[9px] text-[#555]">• {bid.set_name}</span>
           )}

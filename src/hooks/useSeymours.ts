@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { fetchUserSeymours, fetchUserStats, fetchAvailableFilters } from "@/lib/api";
-import { Seymour, UserStats, FilterType } from "@/types/seymour";
+import { Seymour, FilterType } from "@/types/seymour";
+import { Stats } from "@/types/stats";
 
 const FILTERS: { key: FilterType; label: string; hasSubFilter: boolean }[] = [
   { key: "all", label: "All", hasSubFilter: true },
@@ -22,7 +23,7 @@ type SortDirection = "asc" | "desc";
 
 export function useSeymours() {
   const [seymours, setSeymours] = useState<Seymour[]>([]);
-  const [stats, setStats] = useState<UserStats | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [selectedSubFilters, setSelectedSubFilters] = useState<string[]>([]);
   const [allSelected, setAllSelected] = useState(true);
@@ -124,7 +125,6 @@ export function useSeymours() {
       dupes: stats.dupes,
       sets: stats.total_sets,
       dyes: stats.dyed_sets,
-      custom: stats.custom_sets,
     };
     return statMap[key] ?? 0;
   }
