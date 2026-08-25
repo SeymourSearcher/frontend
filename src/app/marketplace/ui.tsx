@@ -118,7 +118,6 @@ export function PieceToggle({
   );
 }
 
-export { LoginPromptModal } from "@/components/LoginPromptModal";
 
 export function SeymourPickerModal({
   onClose,

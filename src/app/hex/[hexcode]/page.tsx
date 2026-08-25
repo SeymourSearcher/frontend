@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { fetchHexInfo, HexInfo } from "@/lib/api";
 import { HexSearchInput } from "@/components/HexSearchInput";
-import { ClosestMatchSidebar, MatchCard } from "@/components/hex";
+import { ClosestMatchSidebar } from "@/components/hex/ClosestMatchSidebar";
+import { MatchCard } from "@/components/hex/MatchCard";
 
 export default function HexPage() {
   const params = useParams();

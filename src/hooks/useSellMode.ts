@@ -35,10 +35,6 @@ export function useSellMode() {
     });
   }, []);
 
-  const selectAll = useCallback((ids: number[]) => {
-    setSelectedIds(new Set(ids));
-  }, []);
-
   const clearSelection = useCallback(() => {
     setSelectedIds(new Set());
   }, []);
@@ -92,7 +88,6 @@ export function useSellMode() {
     selectedIds,
     selectedCount: selectedIds.size,
     toggleSelection,
-    selectAll,
     clearSelection,
     isSelected,
     price,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   fetchOrders,
   fetchMyOrders,
@@ -24,6 +24,7 @@ import {
   SellOrder,
   Tier,
 } from "@/types/marketplace";
+import { LoginPromptModal } from "@/components/LoginPromptModal";
 import CreateOrderForm from "./CreateOrderForm";
 import BuyOrderFilters from "./BuyOrderFilters";
 import SellOrderFilters from "./SellOrderFilters";
@@ -33,7 +34,6 @@ import { PieceIndex } from "@/lib/pieces";
 import {
   ModeToggle,
   TabButton,
-  LoginPromptModal,
   SeymourPickerModal,
   OrderMode,
 } from "./ui";
@@ -68,7 +68,6 @@ export default function MarketplacePage() {
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   useEffect(() => {
-    loadOrders();
     Promise.all([fetchAvailableSets(), fetchSetsPieces()]).then(
       ([setsData, piecesData]) => {
         setSets(setsData || []);
@@ -78,30 +77,24 @@ export default function MarketplacePage() {
   }, []);
 
   useEffect(() => {
+    loadCurrentView();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    user, mode, buyTab, sellTab,
+    filterType, filterSet, filterTier, filterPieces, buySortBy, buySortOrder,
+    sellFilterPiece, sellSortBy, sellSortOrder,
+  ]);
+
+  function loadCurrentView() {
     if (mode === "buy") {
-      if (buyTab === "all") loadOrders();
-      else if (buyTab === "mine" && user) loadMyOrders();
-      else if (buyTab === "fillable" && user) loadFillableOrders();
+      if (buyTab === "all") return loadOrders();
+      if (buyTab === "mine" && user) return loadMyOrders();
+      if (buyTab === "fillable" && user) return loadFillableOrders();
     } else {
-      if (sellTab === "all") loadSellOrders();
-      else if (sellTab === "mine" && user) loadMySellOrders();
+      if (sellTab === "all") return loadSellOrders();
+      if (sellTab === "mine" && user) return loadMySellOrders();
     }
-  }, [user, mode, buyTab, sellTab]);
-
-  useEffect(() => {
-    if (mode === "buy") {
-      if (buyTab === "all") loadOrders();
-      else if (buyTab === "mine" && user) loadMyOrders();
-      else if (buyTab === "fillable" && user) loadFillableOrders();
-    }
-  }, [filterType, filterSet, filterTier, filterPieces, buySortBy, buySortOrder]);
-
-  useEffect(() => {
-    if (mode === "sell") {
-      if (sellTab === "all") loadSellOrders();
-      else if (sellTab === "mine" && user) loadMySellOrders();
-    }
-  }, [sellFilterPiece, sellSortBy, sellSortOrder]);
+  }
 
   function togglePiece(piece: PieceIndex) {
     setFilterPieces((prev) =>

@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Header from "@/components/Header";
-import { WebsiteJsonLd, OrganizationJsonLd } from "@/components/seo";
+import { HeaderClient } from "@/components/HeaderClient";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { WebsiteJsonLd, OrganizationJsonLd } from "@/components/seo/JsonLd";
 import { siteConfig } from "@/lib/seo";
 
 export const metadata: Metadata = {
@@ -54,8 +55,10 @@ export default function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body>
-        <Header />
-        <main>{children}</main>
+        <AuthProvider>
+          <HeaderClient />
+          <main>{children}</main>
+        </AuthProvider>
       </body>
     </html>
   );

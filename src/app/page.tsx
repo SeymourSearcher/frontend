@@ -1,10 +1,9 @@
 import { Stats } from "@/types/stats";
 import { HomeContent } from "@/components/HomeContent";
+import { API_URL } from "@/lib/api";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata.home;
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 async function getStats(): Promise<Stats | null> {
   try {

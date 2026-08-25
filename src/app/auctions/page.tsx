@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { fetchActiveAuctions, fetchEndedAuctions, fetchRecentBids, fetchAuctionSets, fetchAuctionStats } from "@/lib/api";
 import type { RecentBid } from "@/lib/api";
 import type { ActiveAuction, EndedAuction, AuctionFilters as AuctionFiltersParams, AuctionStats } from "@/types/auction";
@@ -39,29 +39,18 @@ export default function AuctionsPage() {
     fetchAuctionSets().then((sets) => setAvailableSets(sets || []));
   }, []);
 
-  function getEffectiveSort(currentTab: Tab) {
-    if (currentTab === "active" && !["timeleft", "price"].includes(sortBy)) {
+  // Each tab supports a different sort set, so the selection is corrected on
+  // read rather than written back -- writing it forced a second render and
+  // refetch on every tab change, and lost the previous tab's preference.
+  const effectiveSort = useMemo(() => {
+    if (tab === "active" && !["timeleft", "price"].includes(sortBy)) {
       return { sortBy: "timeleft", sortOrder: "asc" as const };
     }
-    if (currentTab === "ended" && !["timestamp", "price"].includes(sortBy)) {
+    if ((tab === "ended" || tab === "stats") && !["timestamp", "price"].includes(sortBy)) {
       return { sortBy: "timestamp", sortOrder: "desc" as const };
     }
     return { sortBy, sortOrder };
-  }
-
-  useEffect(() => {
-    if (tab === "active" && !["timeleft", "price"].includes(sortBy)) {
-      setSortBy("timeleft");
-      setSortOrder("asc");
-      return;
-    }
-    if ((tab === "ended" || tab === "stats") && !["timestamp", "price"].includes(sortBy)) {
-      setSortBy("timestamp");
-      setSortOrder("desc");
-      return;
-    }
-    loadAuctions();
-  }, [tab, selectedPieces, binFilter, tier, setName, minPrice, maxPrice, sortBy, sortOrder, includeDyes]);
+  }, [tab, sortBy, sortOrder]);
 
   function togglePiece(piece: PieceIndex) {
     setSelectedPieces((prev) =>
@@ -100,10 +89,9 @@ export default function AuctionsPage() {
       return;
     }
 
-    const effective = getEffectiveSort(tab);
     const params = buildFilterParams();
-    params.sort_by = effective.sortBy;
-    params.sort_order = effective.sortOrder;
+    params.sort_by = effectiveSort.sortBy;
+    params.sort_order = effectiveSort.sortOrder;
 
     if (tab === "active") {
       const data = await fetchActiveAuctions(params);
@@ -116,6 +104,14 @@ export default function AuctionsPage() {
     }
     setLoading(false);
   }
+
+  useEffect(() => {
+    loadAuctions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    tab, selectedPieces, binFilter, tier, setName,
+    minPrice, maxPrice, effectiveSort, includeDyes,
+  ]);
 
   return (
     <main className="min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif]">
@@ -170,8 +166,8 @@ export default function AuctionsPage() {
             setName={setName}
             minPrice={minPrice}
             maxPrice={maxPrice}
-            sortBy={sortBy}
-            sortOrder={sortOrder}
+            sortBy={effectiveSort.sortBy}
+            sortOrder={effectiveSort.sortOrder}
             availableSets={availableSets}
             total={total}
             onTogglePiece={togglePiece}

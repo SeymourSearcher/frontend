@@ -1,36 +1,35 @@
-'use client';
+"use client";
 
-import { Suspense, useEffect } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+
+import { useAuth } from "@/contexts/AuthContext";
+import { exchangeCode, setToken } from "@/lib/api";
 
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { refresh } = useAuth();
 
   useEffect(() => {
-    const code = searchParams.get('code');
+    const code = searchParams.get("code");
     if (!code) {
-      router.push('/');
+      router.push("/");
       return;
     }
 
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/discord/callback`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code }),
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('Auth failed');
-        return res.json();
-      })
-      .then(data => {
-        localStorage.setItem('token', data.access_token);
-        router.push('/items');
-      })
-      .catch(() => {
-        router.push('/?error=auth_failed');
-      });
-  }, [searchParams, router]);
+    exchangeCode(code).then(async (data) => {
+      if (!data) {
+        router.push("/?error=auth_failed");
+        return;
+      }
+      setToken(data.access_token);
+      // The provider already resolved as logged-out on mount; without this the
+      // header stays signed-out until a full reload.
+      await refresh();
+      router.push("/items");
+    });
+  }, [searchParams, router, refresh]);
 
   return (
     <div className="min-h-screen flex items-center justify-center">
@@ -50,4 +49,3 @@ export default function AuthCallback() {
     </Suspense>
   );
 }
-

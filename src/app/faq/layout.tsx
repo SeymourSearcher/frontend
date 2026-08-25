@@ -1,5 +1,5 @@
 import { pageMetadata } from "@/lib/seo";
-import { FAQJsonLd } from "@/components/seo";
+import { FAQJsonLd } from "@/components/seo/JsonLd";
 import { FAQ_DATA_PLAIN } from "./faqData";
 
 export const metadata = pageMetadata.faq;

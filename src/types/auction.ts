@@ -1,3 +1,5 @@
+import { PieceIndex } from "@/lib/pieces";
+
 export interface ActiveAuction {
   auction_id: string;
   seller_uuid: string;
@@ -8,7 +10,7 @@ export interface ActiveAuction {
   end_time: number | null;
   item_uuid: string;
   hex_color: string;
-  piece: number;
+  piece: PieceIndex;
   tier: string | null;
   delta_e: number;
   abs_diff: number;
@@ -26,7 +28,7 @@ export interface EndedAuction {
   is_bin: boolean;
   item_uuid: string;
   hex_color: string;
-  piece: number;
+  piece: PieceIndex;
   timestamp: number;
   tier: string | null;
   delta_e: number;
@@ -47,7 +49,7 @@ export interface EndedAuctionListResponse {
 
 export interface AuctionFilters {
   hex_color?: string;
-  pieces?: number[];
+  pieces?: PieceIndex[];
   min_price?: number;
   max_price?: number;
   bin_filter?: "all" | "bin" | "nobin";

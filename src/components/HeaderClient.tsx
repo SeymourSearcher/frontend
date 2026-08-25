@@ -2,7 +2,7 @@
 
 import { useRef, useState, lazy, Suspense } from "react";
 import Link from "next/link";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { uploadSeymours } from "@/lib/api";
 import DiscordIcon from "./icons/DiscordIcon";
 

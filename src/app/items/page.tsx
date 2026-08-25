@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useSeymours } from "@/hooks/useSeymours";
 import { useSellMode } from "@/hooks/useSellMode";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { fetchUserHexCodes, fetchUserSeymourHexes } from "@/lib/api";
 import SeymourCard from "./SeymourCard";
 import SeymourChip from "./SeymourChip";
