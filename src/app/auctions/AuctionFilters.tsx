@@ -6,7 +6,10 @@ import {
   ACTIVE_SORT_OPTIONS,
   ENDED_SORT_OPTIONS,
 } from "./constants";
-import { FilterButton, PieceToggle, SortSelect, Divider } from "./ui";
+import { FilterButton } from "@/components/ui/FilterButton";
+import { PieceToggle } from "@/components/ui/PieceToggle";
+import { SortSelect } from "@/components/ui/SortSelect";
+import { Divider } from "@/components/ui/Divider";
 import { PIECE_INDEXES, PieceIndex } from "@/lib/pieces";
 
 type Tab = "active" | "ended" | "stats";

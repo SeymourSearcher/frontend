@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { fetchRankings } from "@/lib/api";
 import { RankingUser } from "@/types/stats";
+import { Avatar } from "@/components/Avatar";
 
 type SortKey = "total" | "t1" | "t2" | "t3" | "words" | "dupes" | "sets" | "dyed";
 
@@ -29,22 +30,6 @@ function getStatValue(user: RankingUser, key: SortKey): number {
     dyed: user.dyed_sets,
   };
   return map[key];
-}
-
-function Avatar({ user }: { user: RankingUser }) {
-  // Discord default avatar index: (user_id >> 22) % 6 for new username system
-  const defaultAvatarIndex = Number(BigInt(user.discord_id) >> BigInt(22)) % 6;
-  const src = user.avatar_hash
-    ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar_hash}.png`
-    : `https://cdn.discordapp.com/embed/avatars/${defaultAvatarIndex}.png`;
-
-  return (
-    <img
-      src={src}
-      alt={user.username}
-      className="w-8 h-8 rounded-full"
-    />
-  );
 }
 
 function RankBadge({ rank }: { rank: number }) {
@@ -124,7 +109,7 @@ export default function RankingPage() {
                 <div className="flex items-center gap-3 mb-3 md:mb-0 md:contents">
                   <RankBadge rank={idx + 1} />
                   <div className="flex items-center gap-2 md:gap-3">
-                    <Avatar user={user} />
+                    <Avatar user={user} size="lg" />
                     <span className="text-[#f0f0f0] text-[13px]">{user.username}</span>
                   </div>
                 </div>

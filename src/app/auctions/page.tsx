@@ -8,7 +8,8 @@ import AuctionsGrid from "./AuctionsGrid";
 import AuctionFilters from "./AuctionFilters";
 import RecentBidsFeed from "./RecentBidsFeed";
 import StatsPanel from "./StatsPanel";
-import { TabButton, Divider } from "./ui";
+import { TabButton } from "@/components/ui/TabButton";
+import { Divider } from "@/components/ui/Divider";
 import { PieceIndex } from "@/lib/pieces";
 
 type Tab = "active" | "ended" | "recent-bids" | "stats";

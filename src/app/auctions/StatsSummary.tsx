@@ -1,15 +1,10 @@
 "use client";
 
 import type { AuctionStats } from "@/types/auction";
+import { formatPrice } from "@/lib/format";
 
 interface StatsSummaryProps {
   stats: AuctionStats;
-}
-
-function formatPrice(price: number): string {
-  if (price >= 1_000_000) return `${(price / 1_000_000).toFixed(2)}M`;
-  if (price >= 1_000) return `${(price / 1_000).toFixed(1)}K`;
-  return price.toLocaleString();
 }
 
 function StatCard({

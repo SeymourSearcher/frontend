@@ -1,8 +1,10 @@
 "use client";
 
 import { OrderType, SortBy, SortOrder, Tier } from "@/types/marketplace";
-import { FilterButton, PieceToggle } from "./ui";
-import SortSelect from "./SortSelect";
+import { FilterButton } from "@/components/ui/FilterButton";
+import { PieceToggle } from "@/components/ui/PieceToggle";
+import { SortSelect } from "@/components/ui/SortSelect";
+import { BUY_SORT_OPTIONS } from "./constants";
 import { PIECE_INDEXES, PieceIndex } from "@/lib/pieces";
 
 const TIER_LABELS: Record<Tier, string> = {
@@ -51,6 +53,8 @@ export default function BuyOrderFilters({
       <div className="flex flex-wrap items-center gap-4">
         <div className="flex gap-2">
           <FilterButton
+            size="compact"
+            tone="bright"
             active={filterType === null}
             onClick={() => {
               onFilterTypeChange(null);
@@ -62,12 +66,16 @@ export default function BuyOrderFilters({
             All Types
           </FilterButton>
           <FilterButton
+            size="compact"
+            tone="bright"
             active={filterType === OrderType.SET_PIECE}
             onClick={() => onFilterTypeChange(OrderType.SET_PIECE)}
           >
             Set Pieces
           </FilterButton>
           <FilterButton
+            size="compact"
+            tone="bright"
             active={filterType === OrderType.HEX_PATTERN}
             onClick={() => {
               onFilterTypeChange(OrderType.HEX_PATTERN);
@@ -85,8 +93,11 @@ export default function BuyOrderFilters({
         <SortSelect
           sortBy={sortBy}
           sortOrder={sortOrder}
+          options={BUY_SORT_OPTIONS}
           onSortByChange={onSortByChange}
           onSortOrderChange={onSortOrderChange}
+          size="compact"
+          orderFirst="desc"
         />
       </div>
 
@@ -110,6 +121,8 @@ export default function BuyOrderFilters({
           <div className="flex items-center gap-1">
             {[null, ...Object.values(Tier)].map((tier) => (
               <FilterButton
+            size="compact"
+            tone="bright"
                 key={tier ?? "all"}
                 active={filterTier === tier}
                 onClick={() => onFilterTierChange(tier)}
@@ -122,6 +135,7 @@ export default function BuyOrderFilters({
           <div className="flex items-center gap-1">
             {PIECE_INDEXES.map((piece) => (
               <PieceToggle
+                  size="compact"
                 key={piece}
                 pieceIndex={piece}
                 selected={filterPieces.includes(piece)}

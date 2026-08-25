@@ -31,12 +31,9 @@ import SellOrderFilters from "./SellOrderFilters";
 import BuyOrdersGrid from "./BuyOrdersGrid";
 import SellOrdersGrid from "./SellOrdersGrid";
 import { PieceIndex } from "@/lib/pieces";
-import {
-  ModeToggle,
-  TabButton,
-  SeymourPickerModal,
-  OrderMode,
-} from "./ui";
+import { ModeToggle, OrderMode } from "./ModeToggle";
+import { SeymourPickerModal } from "./SeymourPickerModal";
+import { TabButton } from "@/components/ui/TabButton";
 
 type BuyTab = "all" | "mine" | "fillable";
 type SellTab = "all" | "mine";
@@ -205,10 +202,11 @@ export default function MarketplacePage() {
           <div className="flex gap-1">
             {mode === "buy" ? (
               <>
-                <TabButton active={buyTab === "all"} onClick={() => handleTabClick("all", false)}>
+                <TabButton size="compact" active={buyTab === "all"} onClick={() => handleTabClick("all", false)}>
                   All
                 </TabButton>
                 <TabButton
+                  size="compact"
                   active={buyTab === "mine"}
                   onClick={() => handleTabClick("mine", true)}
                   disabled={!user}
@@ -216,6 +214,7 @@ export default function MarketplacePage() {
                   Mine
                 </TabButton>
                 <TabButton
+                  size="compact"
                   active={buyTab === "fillable"}
                   onClick={() => handleTabClick("fillable", true)}
                   disabled={!user}
@@ -225,10 +224,11 @@ export default function MarketplacePage() {
               </>
             ) : (
               <>
-                <TabButton active={sellTab === "all"} onClick={() => handleTabClick("all", false)}>
+                <TabButton size="compact" active={sellTab === "all"} onClick={() => handleTabClick("all", false)}>
                   All
                 </TabButton>
                 <TabButton
+                  size="compact"
                   active={sellTab === "mine"}
                   onClick={() => handleTabClick("mine", true)}
                   disabled={!user}
@@ -244,7 +244,9 @@ export default function MarketplacePage() {
           {user && mode === "buy" && (
             <button
               onClick={() => setShowCreateForm(true)}
-              className="px-3 py-1.5 rounded text-[11px] bg-[#5865F2] text-white border-none cursor-pointer hover:bg-[#4752c4] transition-colors font-bold"
+              disabled={sets.length === 0}
+              title={sets.length === 0 ? "Sets unavailable — try reloading" : undefined}
+              className="px-3 py-1.5 rounded text-[11px] bg-[#5865F2] text-white border-none cursor-pointer hover:bg-[#4752c4] transition-colors font-bold disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#5865F2]"
             >
               + New Order
             </button>
@@ -310,7 +312,7 @@ export default function MarketplacePage() {
         )}
       </div>
 
-      {showCreateForm && sets.length > 0 && (
+      {showCreateForm && (
         <CreateOrderForm
           sets={sets}
           setPieces={setPieces}

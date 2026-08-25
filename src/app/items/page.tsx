@@ -192,9 +192,9 @@ export default function ItemsPage() {
                   {!incompleteOnly && <MissingBadge pieces={missing} />}
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  {items.map((s, idx) => (
+                  {items.map((s) => (
                     <SeymourChip
-                      key={`${groupName}-${idx}`}
+                      key={s.id}
                       seymour={s}
                       sellMode={sellMode}
                       isSelected={isSelected(s.id)}

@@ -1,13 +1,12 @@
-export function formatTimeRemaining(expiresAt: string): string {
-  const now = new Date();
-  const expires = new Date(expiresAt);
-  const diff = expires.getTime() - now.getTime();
+import { SortBy } from "@/types/marketplace";
 
-  if (diff <= 0) return "Expired";
+export const BUY_SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  { value: "price", label: "Price" },
+  { value: "expires_at", label: "Expires" },
+];
 
-  const hours = Math.floor(diff / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
-  if (hours > 0) return `${hours}h ${minutes}m`;
-  return `${minutes}m`;
-}
+// Sell orders carry a match, so they can also sort by how close it is.
+export const SELL_SORT_OPTIONS: { value: SortBy; label: string }[] = [
+  ...BUY_SORT_OPTIONS,
+  { value: "delta_e", label: "Delta E" },
+];

@@ -1,7 +1,7 @@
 "use client";
 
 import type { RecentBid } from "@/lib/api";
-import { formatPrice, formatTimestamp } from "./constants";
+import { formatPrice, formatTimestamp } from "@/lib/format";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 
 function ColorSwatch({ hex }: { hex: string }) {

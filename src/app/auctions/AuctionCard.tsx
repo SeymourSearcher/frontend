@@ -1,12 +1,8 @@
 "use client";
 
 import type { ActiveAuction, EndedAuction } from "@/types/auction";
-import {
-  TIER_COLORS,
-  formatPrice,
-  formatTimeRemaining,
-  formatTimestamp,
-} from "./constants";
+import { TIER_COLORS } from "./constants";
+import { formatPrice, formatTimestamp, formatTimeUntil } from "@/lib/format";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 
 interface AuctionCardProps {
@@ -98,7 +94,9 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
           ) : (
             <>
               <span className="text-[#f0f0f0] font-medium">
-                {formatTimeRemaining(activeAuction.end_time)}
+                {!activeAuction.end_time
+                  ? "N/A"
+                  : formatTimeUntil(activeAuction.end_time, "Ended")}
               </span>
               <span className="truncate max-w-[120px]">
                 Seller: {activeAuction.seller_name || activeAuction.seller_uuid.slice(0, 15)}

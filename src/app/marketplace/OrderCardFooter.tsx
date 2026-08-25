@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { formatTimeRemaining } from "./constants";
+import { formatTimeUntil } from "@/lib/format";
 
 interface OrderCardFooterProps {
   price: number;
@@ -15,7 +15,9 @@ export default function OrderCardFooter({ price, expiresAt, action }: OrderCardF
         <div className="text-[#4ade80] font-bold text-[13px]">
           {price.toLocaleString()} coins
         </div>
-        <div className="text-[#666] text-[9px]">{formatTimeRemaining(expiresAt)}</div>
+        <div className="text-[#666] text-[9px]">
+          {formatTimeUntil(new Date(expiresAt).getTime(), "Expired")}
+        </div>
       </div>
       {action}
     </div>
