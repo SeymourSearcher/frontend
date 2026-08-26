@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams } from "next/navigation";
 import { fetchHexInfo } from "@/lib/api";
 import type { HexInfo } from "@/types/hex";
+import { useAsyncData } from "@/hooks/useAsyncData";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 import { HexSearchInput } from "@/components/HexSearchInput";
 import { ClosestMatchSidebar } from "@/components/hex/ClosestMatchSidebar";
 import { MatchCard } from "@/components/hex/MatchCard";
@@ -12,29 +14,15 @@ export default function HexPage() {
   const params = useParams();
   const hexcode = (params.hexcode as string)?.toUpperCase() || "";
   
-  const [hexInfo, setHexInfo] = useState<HexInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const [includeDyes, setIncludeDyes] = useState(false);
 
-  useEffect(() => {
-    if (!hexcode || !/^[0-9A-F]{6}$/.test(hexcode)) {
-      setLoading(false);
-      setError("Invalid hex code");
-      return;
-    }
-
-    setLoading(true);
-    setError("");
-    fetchHexInfo(hexcode, includeDyes).then((data) => {
-      if (data) {
-        setHexInfo(data);
-      } else {
-        setError("Failed to fetch hex info");
-      }
-      setLoading(false);
-    });
-  }, [hexcode, includeDyes]);
+  const { state } = useAsyncData<HexInfo>(
+    () =>
+      /^[0-9A-F]{6}$/.test(hexcode)
+        ? fetchHexInfo(hexcode, includeDyes)
+        : Promise.resolve({ ok: false, status: 400, detail: "Invalid hex code" }),
+    [hexcode, includeDyes]
+  );
 
   return (
     <main className="min-h-screen bg-[#121212] px-4 py-6 sm:p-6 font-['MinecraftSeven',Arial,sans-serif]">
@@ -61,15 +49,18 @@ export default function HexPage() {
         </HexSearchInput>
       </div>
 
-      {loading ? (
-        <p className="text-[#888] text-center">Loading...</p>
-      ) : error ? (
-        <p className="text-red-400 text-center">{error}</p>
-      ) : hexInfo && hexInfo.top_matches.length > 0 ? (
+      {state.status === "loading" ? (
+        <StatusMessage>Loading...</StatusMessage>
+      ) : state.status === "error" ? (
+        <StatusMessage tone="error">{state.detail}</StatusMessage>
+      ) : state.data.top_matches.length > 0 ? (
         <div className="max-w-[1100px] mx-auto">
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
             <div className="w-full lg:w-[280px] lg:shrink-0">
-              <ClosestMatchSidebar match={hexInfo.top_matches[0]} searchHex={hexInfo.hex_code} />
+              <ClosestMatchSidebar
+                match={state.data.top_matches[0]}
+                searchHex={state.data.hex_code}
+              />
             </div>
 
             <div className="flex-1 min-w-0">
@@ -77,16 +68,16 @@ export default function HexPage() {
                 Top 3 Closest Matches
               </h2>
               <div className="space-y-4">
-                {hexInfo.top_matches.map((match, idx) => (
+                {state.data.top_matches.map((match, idx) => (
                   <MatchCard key={match.target_hex} match={match} rank={idx + 1} />
                 ))}
               </div>
             </div>
           </div>
         </div>
-      ) : hexInfo ? (
-        <p className="text-[#888] text-center">No matches found</p>
-      ) : null}
+      ) : (
+        <StatusMessage>No matches found</StatusMessage>
+      )}
     </main>
   );
 }

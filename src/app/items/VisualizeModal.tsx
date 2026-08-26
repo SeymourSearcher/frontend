@@ -41,15 +41,12 @@ export default function VisualizeModal({ isOpen, onClose, userHexes = [], userSe
   const handlePreview = async () => {
     setLoading(true);
     setError(null);
-    try {
-      const result = await fetchVisualizationStats(buildRequest());
-      if (result) {
-        setStats(result);
-      } else {
-        setError("Failed to fetch stats");
-      }
-    } catch {
-      setError("Error calculating stats");
+
+    const result = await fetchVisualizationStats(buildRequest());
+    if (result.ok) {
+      setStats(result.data);
+    } else {
+      setError(result.detail);
     }
     setLoading(false);
   };
@@ -57,21 +54,18 @@ export default function VisualizeModal({ isOpen, onClose, userHexes = [], userSe
   const handleDownload = async () => {
     setDownloading(true);
     setError(null);
-    try {
-      const html = await fetchVisualizationHtml({ ...buildRequest(), max_points: 200000 });
-      if (html) {
-        const blob = new Blob([html], { type: "text/html" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `color_cube_de${parseFloat(minDe) || 0}-${parseFloat(maxDe) || 0}.html`;
-        a.click();
-        URL.revokeObjectURL(url);
-      } else {
-        setError("Failed to generate visualization");
-      }
-    } catch {
-      setError("Error generating visualization");
+
+    const result = await fetchVisualizationHtml({ ...buildRequest(), max_points: 200000 });
+    if (result.ok) {
+      const blob = new Blob([result.data], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `color_cube_de${parseFloat(minDe) || 0}-${parseFloat(maxDe) || 0}.html`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } else {
+      setError(result.detail);
     }
     setDownloading(false);
   };

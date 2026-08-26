@@ -14,6 +14,9 @@ import {
   fetchAvailableSets,
   fetchSetsPieces,
 } from "@/lib/api";
+import { dataOr, mapResult, type ApiResult } from "@/lib/apiResult";
+import { useAsyncData } from "@/hooks/useAsyncData";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 import {
   BuyOrder,
   OrderType,
@@ -38,17 +41,26 @@ import { TabButton } from "@/components/ui/TabButton";
 type BuyTab = "all" | "mine" | "fillable";
 type SellTab = "all" | "mine";
 
+/** Tagged by view, so one tab's results can never be rendered under another. */
+type ViewData =
+  | { view: "orders"; orders: BuyOrder[] }
+  | { view: "myOrders"; orders: BuyOrder[] }
+  | { view: "fillable"; orders: FillableOrder[] }
+  | { view: "sellOrders"; orders: SellOrder[] }
+  | { view: "mySellOrders"; orders: SellOrder[] }
+  | { view: "none" };
+
+const NO_SETS: string[] = [];
+const NO_SET_PIECES: Record<string, PieceIndex[]> = {};
+const NO_BUY_ORDERS: BuyOrder[] = [];
+const NO_SELL_ORDERS: SellOrder[] = [];
+const NO_FILLABLE_ORDERS: FillableOrder[] = [];
+
 export default function MarketplacePage() {
   const { user, loading: authLoading } = useAuth();
   const [mode, setMode] = useState<OrderMode>("buy");
   const [buyTab, setBuyTab] = useState<BuyTab>("all");
   const [sellTab, setSellTab] = useState<SellTab>("all");
-  const [orders, setOrders] = useState<BuyOrder[]>([]);
-  const [myOrders, setMyOrders] = useState<BuyOrder[]>([]);
-  const [fillableOrders, setFillableOrders] = useState<FillableOrder[]>([]);
-  const [sellOrders, setSellOrders] = useState<SellOrder[]>([]);
-  const [mySellOrders, setMySellOrders] = useState<SellOrder[]>([]);
-  const [loading, setLoading] = useState(true);
   const [sets, setSets] = useState<string[]>([]);
   const [setPieces, setSetPieces] = useState<Record<string, PieceIndex[]>>({});
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -66,23 +78,65 @@ export default function MarketplacePage() {
 
   useEffect(() => {
     Promise.all([fetchAvailableSets(), fetchSetsPieces()]).then(
-      ([setsData, piecesData]) => {
-        setSets(setsData || []);
-        setSetPieces(piecesData || {});
+      ([setsResult, piecesResult]) => {
+        setSets(dataOr(setsResult, NO_SETS));
+        setSetPieces(dataOr(piecesResult, NO_SET_PIECES));
       }
     );
   }, []);
 
-  useEffect(() => {
-    loadCurrentView();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    user, mode, buyTab, sellTab,
-    filterType, filterSet, filterTier, filterPieces, buySortBy, buySortOrder,
-    sellFilterPiece, sellSortBy, sellSortOrder,
-  ]);
+  function togglePiece(piece: PieceIndex) {
+    setFilterPieces((prev) =>
+      prev.includes(piece) ? prev.filter((p) => p !== piece) : [...prev, piece]
+    );
+  }
 
-  function loadCurrentView() {
+  // delta_e is a sell-side sort only; the buy endpoints reject it.
+  const buySort = buySortBy === "delta_e" ? "price" : buySortBy;
+
+  async function loadOrders() {
+    const params: Parameters<typeof fetchOrders>[0] = {
+      sort_by: buySort,
+      sort_order: buySortOrder,
+    };
+    if (filterType) params.order_type = filterType;
+    if (filterSet) params.set_name = filterSet;
+    if (filterTier) params.tier = filterTier;
+    if (filterPieces.length > 0) params.piece_types = filterPieces;
+    return mapResult(await fetchOrders(params), ({ orders }) => ({
+      view: "orders" as const,
+      orders,
+    }));
+  }
+
+  async function loadMyOrders() {
+    const result = await fetchMyOrders({ sort_by: buySort, sort_order: buySortOrder });
+    return mapResult(result, ({ orders }) => ({ view: "myOrders" as const, orders }));
+  }
+
+  async function loadFillableOrders() {
+    const result = await fetchFillableOrders({ sort_by: buySort, sort_order: buySortOrder });
+    return mapResult(result, (orders) => ({ view: "fillable" as const, orders }));
+  }
+
+  async function loadSellOrders() {
+    const result = await fetchSellOrders({
+      piece_type: sellFilterPiece ?? undefined,
+      sort_by: sellSortBy,
+      sort_order: sellSortOrder,
+    });
+    return mapResult(result, ({ orders }) => ({ view: "sellOrders" as const, orders }));
+  }
+
+  async function loadMySellOrders() {
+    const result = await fetchMySellOrders({
+      sort_by: sellSortBy === "delta_e" ? "price" : sellSortBy,
+      sort_order: sellSortOrder,
+    });
+    return mapResult(result, ({ orders }) => ({ view: "mySellOrders" as const, orders }));
+  }
+
+  function loadCurrentView(): Promise<ApiResult<ViewData>> {
     if (mode === "buy") {
       if (buyTab === "all") return loadOrders();
       if (buyTab === "mine" && user) return loadMyOrders();
@@ -91,90 +145,31 @@ export default function MarketplacePage() {
       if (sellTab === "all") return loadSellOrders();
       if (sellTab === "mine" && user) return loadMySellOrders();
     }
+    // An authed tab with no session -- nothing to fetch, and nothing to wait for.
+    return Promise.resolve({ ok: true, data: { view: "none" } });
   }
 
-  function togglePiece(piece: PieceIndex) {
-    setFilterPieces((prev) =>
-      prev.includes(piece) ? prev.filter((p) => p !== piece) : [...prev, piece]
-    );
-  }
+  const { state, reload } = useAsyncData(loadCurrentView, [
+    user, mode, buyTab, sellTab,
+    filterType, filterSet, filterTier, filterPieces, buySortBy, buySortOrder,
+    sellFilterPiece, sellSortBy, sellSortOrder,
+  ]);
 
-  async function loadOrders() {
-    setLoading(true);
-    const params: Parameters<typeof fetchOrders>[0] = {
-      sort_by: buySortBy === "delta_e" ? "price" : buySortBy,
-      sort_order: buySortOrder,
-    };
-    if (filterType) params.order_type = filterType;
-    if (filterSet) params.set_name = filterSet;
-    if (filterTier) params.tier = filterTier;
-    if (filterPieces.length > 0) params.piece_types = filterPieces;
-    const data = await fetchOrders(params);
-    setOrders(data?.orders || []);
-    setLoading(false);
-  }
-
-  async function loadMyOrders() {
-    setLoading(true);
-    const data = await fetchMyOrders({ 
-      sort_by: buySortBy === "delta_e" ? "price" : buySortBy, 
-      sort_order: buySortOrder 
-    });
-    setMyOrders(data?.orders || []);
-    setLoading(false);
-  }
-
-  async function loadFillableOrders() {
-    setLoading(true);
-    const data = await fetchFillableOrders({ 
-      sort_by: buySortBy === "delta_e" ? "price" : buySortBy, 
-      sort_order: buySortOrder 
-    });
-    setFillableOrders(data || []);
-    setLoading(false);
-  }
-
-  async function loadSellOrders() {
-    setLoading(true);
-    const data = await fetchSellOrders({
-      piece_type: sellFilterPiece ?? undefined,
-      sort_by: sellSortBy,
-      sort_order: sellSortOrder,
-    });
-    setSellOrders(data?.orders || []);
-    setLoading(false);
-  }
-
-  async function loadMySellOrders() {
-    setLoading(true);
-    const data = await fetchMySellOrders({ 
-      sort_by: sellSortBy === "delta_e" ? "price" : sellSortBy, 
-      sort_order: sellSortOrder 
-    });
-    setMySellOrders(data?.orders || []);
-    setLoading(false);
-  }
+  const view = state.status === "success" ? state.data : null;
 
   async function handleCreateOrder(data: BuyOrderCreate) {
-    await createOrder(data);
-    loadOrders();
-    if (user) loadMyOrders();
+    const result = await createOrder(data);
+    // CreateOrderForm surfaces the message from a thrown error.
+    if (!result.ok) throw new Error(result.detail);
+    reload();
   }
 
   async function handleCancelOrder(orderId: number) {
-    const result = await cancelOrder(orderId);
-    if (result) {
-      loadMyOrders();
-      loadOrders();
-    }
+    if ((await cancelOrder(orderId)).ok) reload();
   }
 
   async function handleCancelSellOrder(orderId: number) {
-    const result = await cancelSellOrder(orderId);
-    if (result) {
-      loadMySellOrders();
-      loadSellOrders();
-    }
+    if ((await cancelSellOrder(orderId)).ok) reload();
   }
 
   function handleTabClick(tab: BuyTab | SellTab, requiresAuth: boolean) {
@@ -292,21 +287,23 @@ export default function MarketplacePage() {
           />
         )}
 
-        {loading || authLoading ? (
-          <p className="text-[#888] text-center">Loading...</p>
+        {state.status === "loading" || authLoading ? (
+          <StatusMessage>Loading...</StatusMessage>
+        ) : state.status === "error" ? (
+          <StatusMessage tone="error">{state.detail}</StatusMessage>
         ) : mode === "buy" ? (
           <BuyOrdersGrid
             tab={buyTab}
-            orders={orders}
-            myOrders={myOrders}
-            fillableOrders={fillableOrders}
+            orders={view?.view === "orders" ? view.orders : NO_BUY_ORDERS}
+            myOrders={view?.view === "myOrders" ? view.orders : NO_BUY_ORDERS}
+            fillableOrders={view?.view === "fillable" ? view.orders : NO_FILLABLE_ORDERS}
             onCancelOrder={handleCancelOrder}
           />
         ) : (
           <SellOrdersGrid
             tab={sellTab}
-            sellOrders={sellOrders}
-            mySellOrders={mySellOrders}
+            sellOrders={view?.view === "sellOrders" ? view.orders : NO_SELL_ORDERS}
+            mySellOrders={view?.view === "mySellOrders" ? view.orders : NO_SELL_ORDERS}
             onCancelOrder={handleCancelSellOrder}
           />
         )}
@@ -325,8 +322,7 @@ export default function MarketplacePage() {
         <SeymourPickerModal
           onClose={() => {
             setShowSeymourPicker(false);
-            loadSellOrders();
-            loadMySellOrders();
+            reload();
           }}
         />
       )}

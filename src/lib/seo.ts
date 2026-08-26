@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 
-const BASE_URL = process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000";
+import { env } from "@/lib/env";
+
+const BASE_URL = env.frontendUrl;
 
 export const siteConfig = {
   name: "Seymour Searcher",

@@ -18,12 +18,12 @@ function AuthCallbackContent() {
       return;
     }
 
-    exchangeCode(code).then(async (data) => {
-      if (!data) {
+    exchangeCode(code).then(async (result) => {
+      if (!result.ok) {
         router.push("/?error=auth_failed");
         return;
       }
-      setToken(data.access_token);
+      setToken(result.data.access_token);
       // The provider already resolved as logged-out on mount; without this the
       // header stays signed-out until a full reload.
       await refresh();

@@ -23,8 +23,8 @@ import type { VisualizationRequest, VisualizationStats } from "@/types/visualiza
 import type { Seymour } from "@/types/seymour";
 import type { Stats, RankingUser } from "@/types/stats";
 import type { PieceIndex } from "@/lib/pieces";
-
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+import { env } from "@/lib/env";
+import { type ApiResult, NETWORK_ERROR_STATUS } from "@/lib/apiResult";
 
 function getToken() {
   return localStorage.getItem("token");
@@ -38,328 +38,285 @@ export function clearToken() {
   localStorage.removeItem("token");
 }
 
-async function request<T>(endpoint: string, options?: RequestInit): Promise<T | null> {
-  const token = getToken();
-  const headers: HeadersInit = { ...options?.headers };
+type QueryValue = string | number | boolean | readonly (string | number)[] | undefined | null;
 
+/** Omits empty values, so absent filters stay absent rather than becoming `?tier=`. */
+function toQuery(params: Record<string, QueryValue>): string {
+  const search = new URLSearchParams();
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "") continue;
+    if (Array.isArray(value)) {
+      if (value.length > 0) search.set(key, value.join(","));
+      continue;
+    }
+    search.set(key, String(value));
+  }
+  const query = search.toString();
+  return query ? `?${query}` : "";
+}
+
+/** FastAPI sends `{detail: string}`; validation failures send `{detail: [...]}` instead. */
+async function readDetail(res: Response): Promise<string> {
+  try {
+    const body = await res.json();
+    if (typeof body?.detail === "string") return body.detail;
+  } catch {
+    // Fall through to the generic message.
+  }
+  return `Request failed (${res.status})`;
+}
+
+async function request<T>(
+  endpoint: string,
+  options: RequestInit = {},
+  parseAs: "json" | "text" = "json"
+): Promise<ApiResult<T>> {
+  const token = getToken();
+  const headers: Record<string, string> = { ...(options.headers as Record<string, string>) };
   if (token) {
-    (headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+    headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_URL}${endpoint}`, { ...options, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${env.apiUrl}${endpoint}`, { ...options, headers });
+  } catch {
+    return {
+      ok: false,
+      status: NETWORK_ERROR_STATUS,
+      detail: "Could not reach the server. Check your connection and try again.",
+    };
+  }
 
-  if (!res.ok) return null;
-  return res.json();
+  if (!res.ok) {
+    return { ok: false, status: res.status, detail: await readDetail(res) };
+  }
+
+  const data = parseAs === "text" ? await res.text() : await res.json();
+  return { ok: true, data: data as T };
 }
 
-export async function exchangeCode(code: string) {
-  const res = await fetch(`${API_URL}/auth/discord/callback`, {
+function postJson<T>(endpoint: string, body: unknown): Promise<ApiResult<T>> {
+  return request<T>(endpoint, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ code }),
+    body: JSON.stringify(body),
   });
-
-  if (!res.ok) return null;
-  return res.json() as Promise<{ access_token: string }>;
 }
 
-export async function fetchCurrentUser() {
-  if (!getToken()) return null;
-  return request<{ discord_id: string; username: string; avatar_hash: string | null }>("/auth/me");
+interface CurrentUser {
+  discord_id: string;
+  username: string;
+  avatar_hash: string | null;
 }
 
-export async function uploadSeymours(file: File) {
-  const token = getToken();
-  if (!token) return null;
+export function exchangeCode(code: string) {
+  return postJson<{ access_token: string }>("/auth/discord/callback", { code });
+}
 
+export function fetchCurrentUser(): Promise<ApiResult<CurrentUser>> {
+  // Short-circuit rather than spend a guaranteed-401 round trip on every anonymous page load.
+  if (!getToken()) {
+    return Promise.resolve({ ok: false, status: 401, detail: "Not signed in" });
+  }
+  return request<CurrentUser>("/auth/me");
+}
+
+export function uploadSeymours(file: File) {
   const formData = new FormData();
   formData.append("file", file);
-
-  const res = await fetch(`${API_URL}/seymours/upload`, {
+  // No Content-Type header -- the browser must set it to include the multipart boundary.
+  return request<{ imported: number; skipped: number }>("/seymours/upload", {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
     body: formData,
   });
-
-  if (!res.ok) return null;
-  return res.json() as Promise<{ imported: number; skipped: number }>;
 }
 
-export async function fetchGlobalStats(): Promise<Stats | null> {
-  const res = await fetch(`${API_URL}/stats/`);
-  if (!res.ok) return null;
-  return res.json();
+export function fetchGlobalStats() {
+  return request<Stats>("/stats/");
 }
 
-export async function fetchUserStats() {
+export function fetchUserStats() {
   return request<Stats>("/stats/me");
 }
 
-export async function fetchUserSeymours(filter?: string, subFilter?: string, skip = 0, limit = 100, incompleteOnly = false, includeDyes = false, sort?: string) {
-  const params = new URLSearchParams({ skip: String(skip), limit: String(limit) });
-  if (filter && filter !== "all") {
-    params.set("filter", filter);
-  }
-  if (subFilter) {
-    params.set("sub_filter", subFilter);
-  }
-  if (incompleteOnly) {
-    params.set("incomplete_only", "true");
-  }
-  if (includeDyes) {
-    params.set("include_dyes", "true");
-  }
-  if (sort) {
-    params.set("sort", sort);
-  }
-  return request<Seymour[]>(`/seymours/?${params}`);
-}
-
-export async function fetchAvailableFilters(filter: string, incompleteOnly = false, includeDyes = false) {
-  const params = new URLSearchParams({ filter });
-  if (incompleteOnly) {
-    params.set("incomplete_only", "true");
-  }
-  if (includeDyes) {
-    params.set("include_dyes", "true");
-  }
-  return request<string[]>(`/seymours/available-filters?${params}`);
-}
-
-export async function fetchUserHexCodes(): Promise<string[] | null> {
-  return request<string[]>("/seymours/hex-codes");
-}
-
-export async function fetchUserSeymourHexes(): Promise<[string, PieceIndex][] | null> {
-  return request<[string, PieceIndex][]>("/seymours/hex-codes?with_pieces=true");
-}
-
-export async function fetchRankings() {
-  const res = await fetch(`${API_URL}/stats/rankings`);
-  if (!res.ok) return null;
-  return res.json() as Promise<RankingUser[]>;
-}
-
-export async function fetchHexInfo(hexCode: string, includeDyes: boolean = false): Promise<HexInfo | null> {
-  const params = includeDyes ? '?include_dyes=true' : '';
-  const res = await fetch(`${API_URL}/hex/${hexCode}${params}`);
-  if (!res.ok) return null;
-  return res.json();
-}
-
-export async function fetchOrders(params: FetchOrdersParams = {}): Promise<BuyOrderListResponse | null> {
-  const searchParams = new URLSearchParams();
-  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
-  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
-  if (params.order_type) searchParams.set("order_type", params.order_type);
-  if (params.set_name) searchParams.set("set_name", params.set_name);
-  if (params.piece_types && params.piece_types.length > 0) {
-    searchParams.set("piece_types", params.piece_types.join(","));
-  }
-  if (params.tier) searchParams.set("tier", params.tier);
-  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
-  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
-
-  const query = searchParams.toString();
-  const res = await fetch(`${API_URL}/marketplace/orders${query ? `?${query}` : ""}`);
-  if (!res.ok) return null;
-  return res.json();
-}
-
-export async function fetchMyOrders(params: FetchMyOrdersParams = {}): Promise<BuyOrderListResponse | null> {
-  const searchParams = new URLSearchParams();
-  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
-  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
-  if (params.status) searchParams.set("status", params.status);
-  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
-  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
-
-  const query = searchParams.toString();
-  return request<BuyOrderListResponse>(`/marketplace/orders/mine${query ? `?${query}` : ""}`);
-}
-
-export async function fetchFillableOrders(params: FetchFillableParams = {}): Promise<FillableOrder[] | null> {
-  const searchParams = new URLSearchParams();
-  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
-  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
-  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
-  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
-
-  const query = searchParams.toString();
-  return request<FillableOrder[]>(`/marketplace/orders/fillable${query ? `?${query}` : ""}`);
-}
-
-export class ApiError extends Error {
-  constructor(public detail: string) {
-    super(detail);
-  }
-}
-
-export async function createOrder(data: BuyOrderCreate): Promise<BuyOrder> {
-  const token = localStorage.getItem("token");
-  const headers: HeadersInit = { "Content-Type": "application/json" };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${API_URL}/marketplace/orders`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(data),
+export function fetchUserSeymours(
+  filter?: string,
+  subFilter?: string,
+  skip = 0,
+  limit = 100,
+  incompleteOnly = false,
+  includeDyes = false,
+  sort?: string
+) {
+  const query = toQuery({
+    skip,
+    limit,
+    filter: filter && filter !== "all" ? filter : undefined,
+    sub_filter: subFilter,
+    incomplete_only: incompleteOnly || undefined,
+    include_dyes: includeDyes || undefined,
+    sort,
   });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ detail: "Failed to create order" }));
-    throw new ApiError(errorData.detail || "Failed to create order");
-  }
-  return res.json();
+  return request<Seymour[]>(`/seymours/${query}`);
 }
 
-export async function cancelOrder(orderId: number): Promise<{ detail: string } | null> {
-  return request<{ detail: string }>(`/marketplace/orders/${orderId}`, {
-    method: "DELETE",
+export function fetchAvailableFilters(filter: string, incompleteOnly = false, includeDyes = false) {
+  const query = toQuery({
+    filter,
+    incomplete_only: incompleteOnly || undefined,
+    include_dyes: includeDyes || undefined,
   });
+  return request<string[]>(`/seymours/available-filters${query}`);
 }
 
-export async function fetchAvailableSets(): Promise<string[] | null> {
-  const res = await fetch(`${API_URL}/seymours/available-filters?filter=sets`);
-  if (!res.ok) return null;
-  return res.json();
+export function fetchUserSeymourHexes() {
+  return request<[string, PieceIndex][]>("/seymours/hex-codes/with-pieces");
 }
 
-export async function fetchSetsPieces(): Promise<Record<string, PieceIndex[]> | null> {
-  const res = await fetch(`${API_URL}/marketplace/sets-pieces`);
-  if (!res.ok) return null;
-  return res.json();
+export function fetchRankings() {
+  return request<RankingUser[]>("/stats/rankings");
 }
 
-export async function fetchSellOrders(params: FetchSellOrdersParams = {}): Promise<SellOrderListResponse | null> {
-  const searchParams = new URLSearchParams();
-  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
-  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
-  if (params.piece_type !== undefined) searchParams.set("piece_type", String(params.piece_type));
-  if (params.hex_color) searchParams.set("hex_color", params.hex_color);
-  if (params.min_price !== undefined) searchParams.set("min_price", String(params.min_price));
-  if (params.max_price !== undefined) searchParams.set("max_price", String(params.max_price));
-  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
-  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
-
-  const query = searchParams.toString();
-  const res = await fetch(`${API_URL}/marketplace/orders/sell${query ? `?${query}` : ""}`);
-  if (!res.ok) return null;
-  return res.json();
+export function fetchHexInfo(hexCode: string, includeDyes = false) {
+  return request<HexInfo>(`/hex/${hexCode}${toQuery({ include_dyes: includeDyes || undefined })}`);
 }
 
-export async function fetchMySellOrders(params: FetchMyOrdersParams = {}): Promise<SellOrderListResponse | null> {
-  const searchParams = new URLSearchParams();
-  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
-  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
-  if (params.status) searchParams.set("status", params.status);
-  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
-  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
-
-  const query = searchParams.toString();
-  return request<SellOrderListResponse>(`/marketplace/orders/sell/mine${query ? `?${query}` : ""}`);
-}
-
-export async function createSellOrders(data: SellOrderCreate): Promise<SellOrder[]> {
-  const token = localStorage.getItem("token");
-  const headers: HeadersInit = { "Content-Type": "application/json" };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${API_URL}/marketplace/orders/sell`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(data),
+export function fetchOrders(params: FetchOrdersParams = {}) {
+  const query = toQuery({
+    skip: params.skip,
+    limit: params.limit,
+    order_type: params.order_type,
+    set_name: params.set_name,
+    piece_types: params.piece_types,
+    tier: params.tier,
+    sort_by: params.sort_by,
+    sort_order: params.sort_order,
   });
-
-  if (!res.ok) {
-    const errorData = await res.json().catch(() => ({ detail: "Failed to create sell orders" }));
-    throw new ApiError(errorData.detail || "Failed to create sell orders");
-  }
-  return res.json();
+  return request<BuyOrderListResponse>(`/marketplace/orders${query}`);
 }
 
-export async function cancelSellOrder(orderId: number): Promise<{ detail: string } | null> {
-  return request<{ detail: string }>(`/marketplace/orders/sell/${orderId}`, {
-    method: "DELETE",
+export function fetchMyOrders(params: FetchMyOrdersParams = {}) {
+  const query = toQuery({
+    skip: params.skip,
+    limit: params.limit,
+    status: params.status,
+    sort_by: params.sort_by,
+    sort_order: params.sort_order,
+  });
+  return request<BuyOrderListResponse>(`/marketplace/orders/mine${query}`);
+}
+
+export function fetchFillableOrders(params: FetchFillableParams = {}) {
+  const query = toQuery({
+    skip: params.skip,
+    limit: params.limit,
+    sort_by: params.sort_by,
+    sort_order: params.sort_order,
+  });
+  return request<FillableOrder[]>(`/marketplace/orders/fillable${query}`);
+}
+
+export function createOrder(data: BuyOrderCreate) {
+  return postJson<BuyOrder>("/marketplace/orders", data);
+}
+
+export function cancelOrder(orderId: number) {
+  return request<{ detail: string }>(`/marketplace/orders/${orderId}`, { method: "DELETE" });
+}
+
+export function fetchAvailableSets() {
+  return request<string[]>("/seymours/available-filters?filter=sets");
+}
+
+export function fetchSetsPieces() {
+  return request<Record<string, PieceIndex[]>>("/marketplace/sets-pieces");
+}
+
+export function fetchSellOrders(params: FetchSellOrdersParams = {}) {
+  const query = toQuery({
+    skip: params.skip,
+    limit: params.limit,
+    piece_type: params.piece_type,
+    hex_color: params.hex_color,
+    min_price: params.min_price,
+    max_price: params.max_price,
+    sort_by: params.sort_by,
+    sort_order: params.sort_order,
+  });
+  return request<SellOrderListResponse>(`/marketplace/orders/sell${query}`);
+}
+
+export function fetchMySellOrders(params: FetchMyOrdersParams = {}) {
+  const query = toQuery({
+    skip: params.skip,
+    limit: params.limit,
+    status: params.status,
+    sort_by: params.sort_by,
+    sort_order: params.sort_order,
+  });
+  return request<SellOrderListResponse>(`/marketplace/orders/sell/mine${query}`);
+}
+
+export function createSellOrders(data: SellOrderCreate) {
+  return postJson<SellOrder[]>("/marketplace/orders/sell", data);
+}
+
+export function cancelSellOrder(orderId: number) {
+  return request<{ detail: string }>(`/marketplace/orders/sell/${orderId}`, { method: "DELETE" });
+}
+
+function auctionQuery(params: AuctionFilters): string {
+  return toQuery({
+    skip: params.skip,
+    limit: params.limit,
+    hex_color: params.hex_color,
+    pieces: params.pieces,
+    min_price: params.min_price,
+    max_price: params.max_price,
+    bin_filter: params.bin_filter === "all" ? undefined : params.bin_filter,
+    tier: params.tier,
+    set_name: params.set_name,
+    sort_by: params.sort_by,
+    sort_order: params.sort_order,
+    include_dyes: params.include_dyes,
   });
 }
 
-function buildAuctionParams(params: AuctionFilters): URLSearchParams {
-  const searchParams = new URLSearchParams();
-  if (params.skip !== undefined) searchParams.set("skip", String(params.skip));
-  if (params.limit !== undefined) searchParams.set("limit", String(params.limit));
-  if (params.hex_color) searchParams.set("hex_color", params.hex_color);
-  if (params.pieces?.length) searchParams.set("pieces", params.pieces.join(","));
-  if (params.min_price !== undefined) searchParams.set("min_price", String(params.min_price));
-  if (params.max_price !== undefined) searchParams.set("max_price", String(params.max_price));
-  if (params.bin_filter && params.bin_filter !== "all") searchParams.set("bin_filter", params.bin_filter);
-  if (params.tier) searchParams.set("tier", params.tier);
-  if (params.set_name) searchParams.set("set_name", params.set_name);
-  if (params.sort_by) searchParams.set("sort_by", params.sort_by);
-  if (params.sort_order) searchParams.set("sort_order", params.sort_order);
-  if (params.include_dyes !== undefined) searchParams.set("include_dyes", String(params.include_dyes));
-  return searchParams;
+export function fetchActiveAuctions(params: AuctionFilters = {}) {
+  return request<ActiveAuctionListResponse>(`/auctions/active${auctionQuery(params)}`);
 }
 
-export async function fetchActiveAuctions(
-  params: AuctionFilters = {}
-): Promise<ActiveAuctionListResponse | null> {
-  const query = buildAuctionParams(params).toString();
-  const res = await fetch(`${API_URL}/auctions/active${query ? `?${query}` : ""}`);
-  if (!res.ok) return null;
-  return res.json();
+export function fetchEndedAuctions(params: AuctionFilters = {}) {
+  return request<EndedAuctionListResponse>(`/auctions/ended${auctionQuery(params)}`);
 }
 
-export async function fetchEndedAuctions(
-  params: AuctionFilters = {}
-): Promise<EndedAuctionListResponse | null> {
-  const query = buildAuctionParams(params).toString();
-  const res = await fetch(`${API_URL}/auctions/ended${query ? `?${query}` : ""}`);
-  if (!res.ok) return null;
-  return res.json();
+export function fetchRecentBids(limit = 50, includeDyes = true) {
+  return request<RecentBid[]>(
+    `/auctions/recent-bids${toQuery({ limit, include_dyes: includeDyes })}`
+  );
 }
 
-export async function fetchRecentBids(limit = 50, includeDyes = true): Promise<RecentBid[] | null> {
-  const res = await fetch(`${API_URL}/auctions/recent-bids?limit=${limit}&include_dyes=${includeDyes}`);
-  if (!res.ok) return null;
-  return res.json();
+export function fetchAuctionSets() {
+  return request<string[]>("/auctions/sets");
 }
 
-export async function fetchAuctionSets(): Promise<string[] | null> {
-  const res = await fetch(`${API_URL}/auctions/sets`);
-  if (!res.ok) return null;
-  return res.json();
+export function fetchAuctionStats(params: AuctionFilters = {}) {
+  return request<AuctionStats>(`/auctions/stats${auctionQuery(params)}`);
 }
 
-export async function fetchAuctionStats(
-  params: AuctionFilters = {}
-): Promise<AuctionStats | null> {
-  const query = buildAuctionParams(params).toString();
-  const res = await fetch(`${API_URL}/auctions/stats${query ? `?${query}` : ""}`);
-  if (!res.ok) return null;
-  return res.json();
+export function fetchVisualizationStats(data: VisualizationRequest) {
+  return postJson<VisualizationStats>("/visualization/stats", data);
 }
 
-export async function fetchVisualizationStats(data: VisualizationRequest): Promise<VisualizationStats | null> {
-  const res = await fetch(`${API_URL}/visualization/stats`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) return null;
-  return res.json();
-}
-
-export async function fetchVisualizationHtml(data: VisualizationRequest): Promise<string | null> {
-  const res = await fetch(`${API_URL}/visualization/generate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) return null;
-  return res.text();
+export function fetchVisualizationHtml(data: VisualizationRequest) {
+  return request<string>(
+    "/visualization/generate",
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+    "text"
+  );
 }

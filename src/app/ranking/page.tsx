@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { fetchRankings } from "@/lib/api";
-import { RankingUser } from "@/types/stats";
+import type { RankingUser } from "@/types/stats";
+import { useAsyncData } from "@/hooks/useAsyncData";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 import { Avatar } from "@/components/Avatar";
 
 type SortKey = "total" | "t1" | "t2" | "t3" | "words" | "dupes" | "sets" | "dyed";
@@ -47,20 +49,13 @@ function RankBadge({ rank }: { rank: number }) {
 }
 
 export default function RankingPage() {
-  const [rankings, setRankings] = useState<RankingUser[]>([]);
-  const [loading, setLoading] = useState(true);
   const [sortBy, setSortBy] = useState<SortKey>("total");
-
-  useEffect(() => {
-    fetchRankings().then((data) => {
-      setRankings(data || []);
-      setLoading(false);
-    });
-  }, []);
+  const { state } = useAsyncData(fetchRankings, []);
 
   const sortedRankings = useMemo(() => {
-    return [...rankings].sort((a, b) => getStatValue(b, sortBy) - getStatValue(a, sortBy));
-  }, [rankings, sortBy]);
+    if (state.status !== "success") return [];
+    return [...state.data].sort((a, b) => getStatValue(b, sortBy) - getStatValue(a, sortBy));
+  }, [state, sortBy]);
 
   return (
     <main className="min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif]">
@@ -80,10 +75,12 @@ export default function RankingPage() {
         ))}
       </div>
 
-      {loading ? (
-        <p className="text-[#888] text-center">Loading...</p>
-      ) : rankings.length === 0 ? (
-        <p className="text-[#888] text-center">No rankings available yet.</p>
+      {state.status === "loading" ? (
+        <StatusMessage>Loading...</StatusMessage>
+      ) : state.status === "error" ? (
+        <StatusMessage tone="error">{state.detail}</StatusMessage>
+      ) : sortedRankings.length === 0 ? (
+        <StatusMessage>No rankings available yet.</StatusMessage>
       ) : (
         <div className="max-w-[900px] mx-auto">
           <div className="hidden md:grid grid-cols-[40px_1fr_repeat(8,60px)] gap-2 px-4 py-2 text-[11px] text-[#666] border-b border-[#333]">

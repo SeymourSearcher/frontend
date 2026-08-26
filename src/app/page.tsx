@@ -1,13 +1,13 @@
 import { Stats } from "@/types/stats";
 import { HomeContent } from "@/components/HomeContent";
-import { API_URL } from "@/lib/api";
+import { env } from "@/lib/env";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata.home;
 
 async function getStats(): Promise<Stats | null> {
   try {
-    const res = await fetch(`${API_URL}/stats/`, { next: { revalidate: 60 } });
+    const res = await fetch(`${env.apiUrl}/stats/`, { next: { revalidate: 60 } });
     if (!res.ok) return null;
     return res.json();
   } catch {

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useSeymours } from "@/hooks/useSeymours";
 import { useSellMode } from "@/hooks/useSellMode";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchUserHexCodes, fetchUserSeymourHexes } from "@/lib/api";
+import { fetchUserSeymourHexes } from "@/lib/api";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 import SeymourCard from "./SeymourCard";
 import SeymourChip from "./SeymourChip";
 import MissingBadge from "./MissingBadge";
@@ -26,6 +27,7 @@ export default function ItemsPage() {
     toggleAllSelected,
     availableSubFilters,
     loading,
+    error: loadError,
     hasSubFilter,
     shouldGroup,
     groupedSeymours,
@@ -62,17 +64,18 @@ export default function ItemsPage() {
   } = useSellMode();
 
   const [showVisualizeModal, setShowVisualizeModal] = useState(false);
-  const [userHexes, setUserHexes] = useState<string[]>([]);
   const [userSeymours, setUserSeymours] = useState<[string, PieceIndex][]>([]);
 
   useEffect(() => {
-    fetchUserHexCodes().then(hexes => {
-      if (hexes) setUserHexes(hexes);
-    });
-    fetchUserSeymourHexes().then(seymours => {
-      if (seymours) setUserSeymours(seymours);
+    fetchUserSeymourHexes().then((result) => {
+      if (result.ok) setUserSeymours(result.data);
     });
   }, []);
+
+  const userHexes = useMemo(
+    () => [...new Set(userSeymours.map(([hex]) => hex))],
+    [userSeymours]
+  );
 
   return (
     <main className={`min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif] ${sellMode ? "pb-24" : ""}`}>
@@ -175,9 +178,11 @@ export default function ItemsPage() {
       )}
 
       {loading ? (
-        <p className="text-[#888] text-center">Loading...</p>
+        <StatusMessage>Loading...</StatusMessage>
+      ) : loadError ? (
+        <StatusMessage tone="error">{loadError}</StatusMessage>
       ) : seymours.length === 0 ? (
-        <p className="text-[#888] text-center">No seymours found. Upload an export first!</p>
+        <StatusMessage>No seymours found. Upload an export first!</StatusMessage>
       ) : shouldGroup ? (
         <div className="max-w-[1200px] mx-auto space-y-6">
           {Object.entries(groupedSeymours).map(([groupName, items]) => {

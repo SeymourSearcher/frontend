@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { clearToken, fetchCurrentUser } from "@/lib/api";
+import { NETWORK_ERROR_STATUS } from "@/lib/apiResult";
 import { redirectToDiscord } from "@/lib/auth";
 import { User } from "@/types/user";
 
@@ -22,11 +23,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
-    const data = await fetchCurrentUser();
-    if (data) {
-      setUser(data);
+    const result = await fetchCurrentUser();
+    if (result.ok) {
+      setUser(result.data);
     } else {
-      clearToken();
+      // A failed reachability check must not discard a token that may still be good.
+      if (result.status !== NETWORK_ERROR_STATUS) clearToken();
       setUser(null);
     }
     setLoading(false);

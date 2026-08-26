@@ -2,8 +2,12 @@
 
 import { useEffect, useState, useMemo } from "react";
 import { fetchUserSeymours, fetchUserStats, fetchAvailableFilters } from "@/lib/api";
+import { useAsyncData } from "@/hooks/useAsyncData";
 import { Seymour, FilterType } from "@/types/seymour";
 import { Stats } from "@/types/stats";
+
+// Stable identity, so the memos below don't recompute on every non-success render.
+const EMPTY_SEYMOURS: Seymour[] = [];
 
 const FILTERS: { key: FilterType; label: string; hasSubFilter: boolean }[] = [
   { key: "all", label: "All", hasSubFilter: true },
@@ -22,13 +26,11 @@ type GroupedSeymours = { [key: string]: Seymour[] };
 type SortDirection = "asc" | "desc";
 
 export function useSeymours() {
-  const [seymours, setSeymours] = useState<Seymour[]>([]);
   const [stats, setStats] = useState<Stats | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [selectedSubFilters, setSelectedSubFilters] = useState<string[]>([]);
   const [allSelected, setAllSelected] = useState(true);
   const [availableSubFilters, setAvailableSubFilters] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
   const [incompleteOnly, setIncompleteOnly] = useState(false);
   const [includeDyes, setIncludeDyes] = useState(false);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(null);
@@ -61,15 +63,15 @@ export function useSeymours() {
   };
 
   useEffect(() => {
-    fetchUserStats().then((data) => {
-      if (data) setStats(data);
+    fetchUserStats().then((result) => {
+      if (result.ok) setStats(result.data);
     });
   }, []);
 
   useEffect(() => {
     if (hasSubFilter) {
-      fetchAvailableFilters(filter, incompleteOnly, includeDyes).then((data) => {
-        const newFilters = data || [];
+      fetchAvailableFilters(filter, incompleteOnly, includeDyes).then((result) => {
+        const newFilters = result.ok ? result.data : [];
         setAvailableSubFilters(newFilters);
         setSelectedSubFilters(prev => prev.filter(v => newFilters.includes(v)));
       });
@@ -80,13 +82,14 @@ export function useSeymours() {
     setAllSelected(true);
   }, [filter, hasSubFilter, incompleteOnly, includeDyes]);
 
-  useEffect(() => {
-    setLoading(true);
-    fetchUserSeymours(filter, subFilterParam, 0, 500, incompleteOnly, includeDyes, sortDirection || undefined).then((data) => {
-      setSeymours(data || []);
-      setLoading(false);
-    });
-  }, [filter, subFilterParam, incompleteOnly, includeDyes, sortDirection]);
+  const { state } = useAsyncData(
+    () => fetchUserSeymours(
+      filter, subFilterParam, 0, 500, incompleteOnly, includeDyes, sortDirection || undefined
+    ),
+    [filter, subFilterParam, incompleteOnly, includeDyes, sortDirection]
+  );
+
+  const seymours = state.status === "success" ? state.data : EMPTY_SEYMOURS;
 
   const groupedSeymours = useMemo<GroupedSeymours>(() => {
     if (!shouldGroup) return { "": seymours };
@@ -154,7 +157,8 @@ export function useSeymours() {
     allSelected,
     toggleAllSelected,
     availableSubFilters,
-    loading,
+    loading: state.status === "loading",
+    error: state.status === "error" ? state.detail : null,
     hasSubFilter,
     shouldGroup,
     groupedSeymours,

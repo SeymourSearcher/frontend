@@ -31,10 +31,10 @@ export function HeaderClient() {
     if (!file) return;
 
     const result = await uploadSeymours(file);
-    if (result) {
-      alert(`Imported ${result.imported} seymours (${result.skipped} skipped)`);
+    if (result.ok) {
+      alert(`Imported ${result.data.imported} seymours (${result.data.skipped} skipped)`);
     } else {
-      alert("Upload failed. Please log in first.");
+      alert(`Upload failed: ${result.detail}`);
     }
 
     e.target.value = "";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { createSellOrders, ApiError } from "@/lib/api";
+import { createSellOrders } from "@/lib/api";
 
 export function useSellMode() {
   const [sellMode, setSellMode] = useState(false);
@@ -56,26 +56,22 @@ export function useSellMode() {
     setIsSubmitting(true);
     setError(null);
 
-    try {
-      const orders = await createSellOrders({
-        seymour_ids: Array.from(selectedIds),
-        price: priceNum,
-      });
-      setSuccessCount(orders.length);
-      setSelectedIds(new Set());
-      setPrice("");
-      setSellMode(false);
-      return true;
-    } catch (err) {
-      if (err instanceof ApiError) {
-        setError(err.detail);
-      } else {
-        setError("Failed to create sell orders");
-      }
+    const result = await createSellOrders({
+      seymour_ids: Array.from(selectedIds),
+      price: priceNum,
+    });
+    setIsSubmitting(false);
+
+    if (!result.ok) {
+      setError(result.detail);
       return false;
-    } finally {
-      setIsSubmitting(false);
     }
+
+    setSuccessCount(result.data.length);
+    setSelectedIds(new Set());
+    setPrice("");
+    setSellMode(false);
+    return true;
   }, [price, selectedIds]);
 
   const dismissSuccess = useCallback(() => {

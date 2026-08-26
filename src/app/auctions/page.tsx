@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { fetchActiveAuctions, fetchEndedAuctions, fetchRecentBids, fetchAuctionSets, fetchAuctionStats } from "@/lib/api";
+import { mapResult, type ApiResult } from "@/lib/apiResult";
+import { useAsyncData } from "@/hooks/useAsyncData";
+import { StatusMessage } from "@/components/ui/StatusMessage";
 import type { RecentBid } from "@/types/auction";
 import type { ActiveAuction, EndedAuction, AuctionFilters as AuctionFiltersParams, AuctionStats } from "@/types/auction";
 import AuctionsGrid from "./AuctionsGrid";
@@ -16,15 +19,17 @@ type Tab = "active" | "ended" | "recent-bids" | "stats";
 type BinFilter = "all" | "bin" | "nobin";
 type Tier = "t1" | "t2" | "t3" | "";
 
+/** Tagged by tab so a slow response can never be rendered under the wrong one. */
+type TabData =
+  | { tab: "active"; auctions: ActiveAuction[]; total: number }
+  | { tab: "ended"; auctions: EndedAuction[]; total: number }
+  | { tab: "recent-bids"; bids: RecentBid[]; total: number }
+  | { tab: "stats"; stats: AuctionStats; total: number };
+
+const NO_SETS: string[] = [];
+
 export default function AuctionsPage() {
   const [tab, setTab] = useState<Tab>("active");
-  const [activeAuctions, setActiveAuctions] = useState<ActiveAuction[]>([]);
-  const [endedAuctions, setEndedAuctions] = useState<EndedAuction[]>([]);
-  const [stats, setStats] = useState<AuctionStats | null>(null);
-  const [recentBids, setRecentBids] = useState<RecentBid[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [total, setTotal] = useState(0);
-
   const [selectedPieces, setSelectedPieces] = useState<PieceIndex[]>([]);
   const [binFilter, setBinFilter] = useState<BinFilter>("all");
   const [tier, setTier] = useState<Tier>("");
@@ -33,12 +38,10 @@ export default function AuctionsPage() {
   const [maxPrice, setMaxPrice] = useState("");
   const [sortBy, setSortBy] = useState("timeleft");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [availableSets, setAvailableSets] = useState<string[]>([]);
   const [includeDyes, setIncludeDyes] = useState(true);
 
-  useEffect(() => {
-    fetchAuctionSets().then((sets) => setAvailableSets(sets || []));
-  }, []);
+  const { state: setsState } = useAsyncData(fetchAuctionSets, []);
+  const availableSets = setsState.status === "success" ? setsState.data : NO_SETS;
 
   // Each tab supports a different sort set, so the selection is corrected on
   // read rather than written back -- writing it forced a second render and
@@ -70,49 +73,48 @@ export default function AuctionsPage() {
     return params;
   }
 
-  async function loadAuctions() {
-    setLoading(true);
-
+  async function loadTab(): Promise<ApiResult<TabData>> {
     if (tab === "recent-bids") {
-      const data = await fetchRecentBids(50, includeDyes);
-      setRecentBids(data || []);
-      setTotal(data?.length || 0);
-      setLoading(false);
-      return;
-    }
-
-    if (tab === "stats") {
-      const params = buildFilterParams();
-      const data = await fetchAuctionStats(params);
-      setStats(data);
-      setTotal(data?.total || 0);
-      setLoading(false);
-      return;
+      return mapResult(await fetchRecentBids(50, includeDyes), (bids) => ({
+        tab: "recent-bids" as const,
+        bids,
+        total: bids.length,
+      }));
     }
 
     const params = buildFilterParams();
+
+    if (tab === "stats") {
+      return mapResult(await fetchAuctionStats(params), (stats) => ({
+        tab: "stats" as const,
+        stats,
+        total: stats.total,
+      }));
+    }
+
     params.sort_by = effectiveSort.sortBy;
     params.sort_order = effectiveSort.sortOrder;
 
     if (tab === "active") {
-      const data = await fetchActiveAuctions(params);
-      setActiveAuctions(data?.auctions || []);
-      setTotal(data?.total || 0);
-    } else {
-      const data = await fetchEndedAuctions(params);
-      setEndedAuctions(data?.auctions || []);
-      setTotal(data?.total || 0);
+      return mapResult(await fetchActiveAuctions(params), ({ auctions, total }) => ({
+        tab: "active" as const,
+        auctions,
+        total,
+      }));
     }
-    setLoading(false);
+    return mapResult(await fetchEndedAuctions(params), ({ auctions, total }) => ({
+      tab: "ended" as const,
+      auctions,
+      total,
+    }));
   }
 
-  useEffect(() => {
-    loadAuctions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
+  const { state } = useAsyncData(loadTab, [
     tab, selectedPieces, binFilter, tier, setName,
     minPrice, maxPrice, effectiveSort, includeDyes,
   ]);
+
+  const total = state.status === "success" ? state.data.total : 0;
 
   return (
     <main className="min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif]">
@@ -183,20 +185,24 @@ export default function AuctionsPage() {
           />
         )}
 
-        {tab === "stats" ? (
-          <StatsPanel stats={stats} loading={loading} />
-        ) : loading ? (
+        {state.status === "error" ? (
+          <div className="flex items-center justify-center py-12">
+            <StatusMessage tone="error">{state.detail}</StatusMessage>
+          </div>
+        ) : tab === "stats" ? (
+          <StatsPanel
+            stats={state.status === "success" && state.data.tab === "stats" ? state.data.stats : null}
+            loading={state.status === "loading"}
+          />
+        ) : state.status === "loading" ? (
           <div className="flex items-center justify-center py-12">
             <div className="text-[#888] text-[14px]">Loading...</div>
           </div>
-        ) : tab === "recent-bids" ? (
-          <RecentBidsFeed bids={recentBids} />
-        ) : (
-          <AuctionsGrid
-            auctions={tab === "active" ? activeAuctions : endedAuctions}
-            isEnded={tab === "ended"}
-          />
-        )}
+        ) : state.data.tab === "recent-bids" ? (
+          <RecentBidsFeed bids={state.data.bids} />
+        ) : state.data.tab === "active" || state.data.tab === "ended" ? (
+          <AuctionsGrid auctions={state.data.auctions} isEnded={state.data.tab === "ended"} />
+        ) : null}
       </div>
     </main>
   );
