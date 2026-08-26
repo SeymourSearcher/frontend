@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { OrderType, HexMatchType, Tier, BuyOrderCreate } from "@/types/marketplace";
-import { PIECE_INDEXES, PIECE_SLOT_NAMES, PieceIndex } from "@/lib/pieces";
+import { PieceIndex } from "@/lib/pieces";
+import { ToggleButton } from "./ToggleButton";
+import { SetPieceFields } from "./SetPieceFields";
+import { HexPatternFields } from "./HexPatternFields";
+import { buildBuyOrders } from "./buildBuyOrders";
+import { INPUT_CLASS, LABEL_CLASS } from "./formStyles";
 
 interface CreateOrderFormProps {
   sets: string[];
@@ -11,93 +16,8 @@ interface CreateOrderFormProps {
   onClose: () => void;
 }
 
-function ToggleButton({
-  selected,
-  onClick,
-  disabled,
-  children,
-  className = "",
-}: {
-  selected: boolean;
-  onClick: () => void;
-  disabled?: boolean;
-  children: React.ReactNode;
-  className?: string;
-}) {
-  const baseClass = "py-2 rounded text-[11px] border-none transition-colors";
-  const stateClass = disabled
-    ? "bg-[#222] text-[#555] cursor-not-allowed line-through"
-    : selected
-    ? "bg-[#5865F2] text-white cursor-pointer"
-    : "bg-[#333] text-[#ccc] hover:bg-[#444] cursor-pointer";
-
-  return (
-    <button
-      type="button"
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
-      className={`${baseClass} ${stateClass} ${className}`}
-    >
-      {children}
-    </button>
-  );
-}
-
-function PieceSelector({
-  selectedPieces,
-  availablePieces,
-  onToggle,
-  allowMultiple = true,
-}: {
-  selectedPieces: PieceIndex[];
-  availablePieces: PieceIndex[];
-  onToggle: (piece: PieceIndex) => void;
-  allowMultiple?: boolean;
-}) {
-  return (
-    <div className="grid grid-cols-4 gap-2">
-      {PIECE_INDEXES.map((piece) => (
-        <ToggleButton
-          key={piece}
-          selected={selectedPieces.includes(piece)}
-          disabled={!availablePieces.includes(piece)}
-          onClick={() => onToggle(piece)}
-        >
-          {PIECE_SLOT_NAMES[piece]}
-        </ToggleButton>
-      ))}
-    </div>
-  );
-}
-
-function HexPieceSelector({
-  selectedPieces,
-  anySelected,
-  onToggle,
-  onToggleAny,
-}: {
-  selectedPieces: PieceIndex[];
-  anySelected: boolean;
-  onToggle: (piece: PieceIndex) => void;
-  onToggleAny: () => void;
-}) {
-  return (
-    <div className="grid grid-cols-5 gap-2">
-      <ToggleButton selected={anySelected} onClick={onToggleAny}>
-        Any
-      </ToggleButton>
-      {PIECE_INDEXES.map((piece) => (
-        <ToggleButton
-          key={piece}
-          selected={selectedPieces.includes(piece)}
-          onClick={() => onToggle(piece)}
-          disabled={anySelected}
-        >
-          {PIECE_SLOT_NAMES[piece]}
-        </ToggleButton>
-      ))}
-    </div>
-  );
+function togglePiece(pieces: PieceIndex[], piece: PieceIndex): PieceIndex[] {
+  return pieces.includes(piece) ? pieces.filter((p) => p !== piece) : [...pieces, piece];
 }
 
 export default function CreateOrderForm({
@@ -121,22 +41,6 @@ export default function CreateOrderForm({
 
   const availablePieces = setPieces[setName] || [];
 
-  function handlePieceToggle(piece: PieceIndex) {
-    setSelectedPieceTypes((prev) =>
-      prev.includes(piece)
-        ? prev.filter((p) => p !== piece)
-        : [...prev, piece]
-    );
-  }
-
-  function handleHexPieceToggle(piece: PieceIndex) {
-    setHexPieceTypes((prev) =>
-      prev.includes(piece)
-        ? prev.filter((p) => p !== piece)
-        : [...prev, piece]
-    );
-  }
-
   function handleHexAnyToggle() {
     setHexAnyPiece((prev) => !prev);
     if (!hexAnyPiece) {
@@ -154,74 +58,34 @@ export default function CreateOrderForm({
     e.preventDefault();
     setError("");
 
-    const priceNum = parseInt(price, 10);
-    if (!priceNum || priceNum <= 0) {
-      setError("Price must be a positive number");
+    const result = buildBuyOrders({
+      orderType,
+      price,
+      setName,
+      selectedPieceTypes,
+      tier,
+      hexMatchType,
+      hexValue,
+      maxDeltaE,
+      hexPieceTypes,
+      hexAnyPiece,
+    });
+
+    if (!result.ok) {
+      setError(result.error);
       return;
     }
 
-    if (orderType === OrderType.SET_PIECE) {
-      if (!setName) {
-        setError("Please select a set");
-        return;
+    setSubmitting(true);
+    try {
+      for (const order of result.orders) {
+        await onSubmit(order);
       }
-      if (selectedPieceTypes.length === 0) {
-        setError("Please select at least one piece type");
-        return;
-      }
-
-      setSubmitting(true);
-      try {
-        const data: BuyOrderCreate = {
-          price: priceNum,
-          order_type: orderType,
-          set_criteria: { set_name: setName, piece_types: selectedPieceTypes, tier },
-        };
-        await onSubmit(data);
-        onClose();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to create order");
-      } finally {
-        setSubmitting(false);
-      }
-    } else {
-      const cleanHex = hexValue.replace("#", "").toUpperCase();
-      if (cleanHex.length !== 6) {
-        setError("Hex value must be 6 characters");
-        return;
-      }
-
-      if (!hexAnyPiece && hexPieceTypes.length === 0) {
-        setError("Please select at least one piece type or choose 'Any'");
-        return;
-      }
-
-      const piecesToCreate: (PieceIndex | null)[] = hexAnyPiece ? [null] : hexPieceTypes;
-
-      setSubmitting(true);
-      try {
-        for (const pieceType of piecesToCreate) {
-          const data: BuyOrderCreate = {
-            price: priceNum,
-            order_type: orderType,
-            hex_criteria: {
-              match_type: hexMatchType,
-              hex_value: cleanHex,
-              max_delta_e:
-                hexMatchType === HexMatchType.DELTA_E
-                  ? parseFloat(maxDeltaE) || null
-                  : null,
-              piece_type: pieceType,
-            },
-          };
-          await onSubmit(data);
-        }
-        onClose();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to create order");
-      } finally {
-        setSubmitting(false);
-      }
+      onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create order");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -240,7 +104,7 @@ export default function CreateOrderForm({
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block text-[#888] text-[12px] mb-1">Order Type</label>
+            <label className={LABEL_CLASS}>Order Type</label>
             <div className="flex gap-2">
               <ToggleButton
                 selected={orderType === OrderType.SET_PIECE}
@@ -260,138 +124,42 @@ export default function CreateOrderForm({
           </div>
 
           <div>
-            <label className="block text-[#888] text-[12px] mb-1">Price (coins)</label>
+            <label className={LABEL_CLASS}>Price (coins)</label>
             <input
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               placeholder="Enter price"
-              className="w-full bg-[#252525] border border-[#333] rounded px-3 py-2 text-[#f0f0f0] text-[13px] outline-none focus:border-[#5865F2]"
+              className={`w-full ${INPUT_CLASS}`}
               min="1"
               required
             />
           </div>
 
           {orderType === OrderType.SET_PIECE ? (
-            <>
-              <div>
-                <label className="block text-[#888] text-[12px] mb-1">Set Name</label>
-                <select
-                  value={setName}
-                  onChange={(e) => handleSetChange(e.target.value)}
-                  className="w-full bg-[#252525] border border-[#333] rounded px-3 py-2 text-[#f0f0f0] text-[13px] outline-none focus:border-[#5865F2]"
-                  required
-                >
-                  {sets.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-[#888] text-[12px] mb-1">
-                  Piece Types ({selectedPieceTypes.length} selected)
-                </label>
-                <PieceSelector
-                  selectedPieces={selectedPieceTypes}
-                  availablePieces={availablePieces}
-                  onToggle={handlePieceToggle}
-                />
-                {availablePieces.length < 4 && (
-                  <p className="text-[#666] text-[10px] mt-1">
-                    Crossed out pieces are not available for this set
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-[#888] text-[12px] mb-1">Tier</label>
-                <div className="flex gap-2">
-                  {Object.values(Tier).map((t) => (
-                    <ToggleButton
-                      key={t}
-                      selected={tier === t}
-                      onClick={() => setTier(t)}
-                      className="flex-1 text-[12px]"
-                    >
-                      {t.toUpperCase()}
-                    </ToggleButton>
-                  ))}
-                </div>
-              </div>
-            </>
+            <SetPieceFields
+              sets={sets}
+              setName={setName}
+              availablePieces={availablePieces}
+              selectedPieceTypes={selectedPieceTypes}
+              tier={tier}
+              onSetNameChange={handleSetChange}
+              onPieceToggle={(piece) => setSelectedPieceTypes((prev) => togglePiece(prev, piece))}
+              onTierChange={setTier}
+            />
           ) : (
-            <>
-              <div>
-                <label className="block text-[#888] text-[12px] mb-1">Match Type</label>
-                <div className="flex gap-2">
-                  {Object.values(HexMatchType).map((mt) => (
-                    <ToggleButton
-                      key={mt}
-                      selected={hexMatchType === mt}
-                      onClick={() => setHexMatchType(mt)}
-                      className="flex-1"
-                    >
-                      {mt === HexMatchType.DELTA_E
-                        ? "Delta E"
-                        : mt.charAt(0).toUpperCase() + mt.slice(1)}
-                    </ToggleButton>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[#888] text-[12px] mb-1">Hex Value</label>
-                <div className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    value={hexValue}
-                    onChange={(e) =>
-                      setHexValue(e.target.value.replace("#", "").slice(0, 6))
-                    }
-                    placeholder="FFFFFF"
-                    className="flex-1 bg-[#252525] border border-[#333] rounded px-3 py-2 text-[#f0f0f0] text-[13px] outline-none focus:border-[#5865F2] uppercase"
-                    maxLength={6}
-                    required
-                  />
-                  {hexValue.length === 6 && (
-                    <span
-                      className="w-8 h-8 rounded border border-[#444]"
-                      style={{ backgroundColor: `#${hexValue}` }}
-                    />
-                  )}
-                </div>
-              </div>
-
-              {hexMatchType === HexMatchType.DELTA_E && (
-                <div>
-                  <label className="block text-[#888] text-[12px] mb-1">Max Delta E</label>
-                  <input
-                    type="number"
-                    value={maxDeltaE}
-                    onChange={(e) => setMaxDeltaE(e.target.value)}
-                    placeholder="e.g. 5"
-                    className="w-full bg-[#252525] border border-[#333] rounded px-3 py-2 text-[#f0f0f0] text-[13px] outline-none focus:border-[#5865F2]"
-                    step="0.1"
-                    min="0"
-                  />
-                </div>
-              )}
-
-              <div>
-                <label className="block text-[#888] text-[12px] mb-1">
-                  Piece Types {!hexAnyPiece && `(${hexPieceTypes.length} selected)`}
-                </label>
-                <HexPieceSelector
-                  selectedPieces={hexPieceTypes}
-                  anySelected={hexAnyPiece}
-                  onToggle={handleHexPieceToggle}
-                  onToggleAny={handleHexAnyToggle}
-                />
-              </div>
-            </>
+            <HexPatternFields
+              hexMatchType={hexMatchType}
+              hexValue={hexValue}
+              maxDeltaE={maxDeltaE}
+              hexPieceTypes={hexPieceTypes}
+              hexAnyPiece={hexAnyPiece}
+              onHexMatchTypeChange={setHexMatchType}
+              onHexValueChange={setHexValue}
+              onMaxDeltaEChange={setMaxDeltaE}
+              onHexPieceToggle={(piece) => setHexPieceTypes((prev) => togglePiece(prev, piece))}
+              onHexAnyToggle={handleHexAnyToggle}
+            />
           )}
 
           {error && <p className="text-red-400 text-[12px]">{error}</p>}
