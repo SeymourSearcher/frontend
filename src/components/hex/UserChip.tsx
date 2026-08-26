@@ -1,6 +1,6 @@
 "use client";
 
-import { HexUser } from "@/lib/api";
+import type { HexUser } from "@/types/hex";
 import { Avatar } from "@/components/Avatar";
 
 export function UserChip({ user }: { user: HexUser }) {

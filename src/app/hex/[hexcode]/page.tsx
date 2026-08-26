@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
-import { fetchHexInfo, HexInfo } from "@/lib/api";
+import { fetchHexInfo } from "@/lib/api";
+import type { HexInfo } from "@/types/hex";
 import { HexSearchInput } from "@/components/HexSearchInput";
 import { ClosestMatchSidebar } from "@/components/hex/ClosestMatchSidebar";
 import { MatchCard } from "@/components/hex/MatchCard";

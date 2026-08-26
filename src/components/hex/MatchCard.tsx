@@ -1,6 +1,6 @@
 "use client";
 
-import { HexMatch } from "@/lib/api";
+import type { HexMatch } from "@/types/hex";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 import { TierBadge } from "./TierBadge";
 import { TierSection } from "./TierSection";

@@ -62,6 +62,20 @@ export interface AuctionFilters {
   include_dyes?: boolean;
 }
 
+export interface RecentBid {
+  auction_id: string;
+  bidder_uuid: string;
+  bidder_name: string | null;
+  amount: number;
+  timestamp: number;
+  hex_color: string;
+  piece: PieceIndex;
+  target_hex: string;
+  set_name: string | null;
+  delta_e: number;
+  abs_diff: number;
+}
+
 export interface PriceBucket {
   label: string;
   count: number;

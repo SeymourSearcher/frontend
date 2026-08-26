@@ -2,22 +2,24 @@ import type {
   BuyOrderListResponse,
   BuyOrderCreate,
   BuyOrder,
-  OrderType,
-  OrderStatus,
   FillableOrder,
-  SortBy,
-  SortOrder,
   SellOrder,
   SellOrderListResponse,
   SellOrderCreate,
-  SellOrderFilters,
+  FetchOrdersParams,
+  FetchMyOrdersParams,
+  FetchFillableParams,
+  FetchSellOrdersParams,
 } from "@/types/marketplace";
 import type {
   ActiveAuctionListResponse,
   EndedAuctionListResponse,
   AuctionFilters,
   AuctionStats,
+  RecentBid,
 } from "@/types/auction";
+import type { HexInfo } from "@/types/hex";
+import type { VisualizationRequest, VisualizationStats } from "@/types/visualization";
 import type { Seymour } from "@/types/seymour";
 import type { Stats, RankingUser } from "@/types/stats";
 import type { PieceIndex } from "@/lib/pieces";
@@ -138,61 +140,11 @@ export async function fetchRankings() {
   return res.json() as Promise<RankingUser[]>;
 }
 
-export interface HexUser {
-  discord_id: string;
-  username: string;
-  avatar_hash: string | null;
-  delta_e: number;
-}
-
-export interface HexMatch {
-  target_name: string;
-  target_hex: string;
-  delta_e: number;
-  pieces: PieceIndex[];
-  users_by_tier: {
-    t1: HexUser[];
-    t2: HexUser[];
-    t3: HexUser[];
-  };
-}
-
-export interface HexInfo {
-  hex_code: string;
-  top_matches: HexMatch[];
-}
-
 export async function fetchHexInfo(hexCode: string, includeDyes: boolean = false): Promise<HexInfo | null> {
   const params = includeDyes ? '?include_dyes=true' : '';
   const res = await fetch(`${API_URL}/hex/${hexCode}${params}`);
   if (!res.ok) return null;
   return res.json();
-}
-
-export interface FetchOrdersParams {
-  skip?: number;
-  limit?: number;
-  order_type?: OrderType;
-  set_name?: string;
-  piece_types?: number[];
-  tier?: string;
-  sort_by?: SortBy;
-  sort_order?: SortOrder;
-}
-
-export interface FetchMyOrdersParams {
-  skip?: number;
-  limit?: number;
-  status?: OrderStatus;
-  sort_by?: SortBy;
-  sort_order?: SortOrder;
-}
-
-export interface FetchFillableParams {
-  skip?: number;
-  limit?: number;
-  sort_by?: SortBy;
-  sort_order?: SortOrder;
 }
 
 export async function fetchOrders(params: FetchOrdersParams = {}): Promise<BuyOrderListResponse | null> {
@@ -279,11 +231,6 @@ export async function fetchSetsPieces(): Promise<Record<string, PieceIndex[]> | 
   const res = await fetch(`${API_URL}/marketplace/sets-pieces`);
   if (!res.ok) return null;
   return res.json();
-}
-
-export interface FetchSellOrdersParams extends SellOrderFilters {
-  skip?: number;
-  limit?: number;
 }
 
 export async function fetchSellOrders(params: FetchSellOrdersParams = {}): Promise<SellOrderListResponse | null> {
@@ -376,20 +323,6 @@ export async function fetchEndedAuctions(
   return res.json();
 }
 
-export interface RecentBid {
-  auction_id: string;
-  bidder_uuid: string;
-  bidder_name: string | null;
-  amount: number;
-  timestamp: number;
-  hex_color: string;
-  piece: PieceIndex;
-  target_hex: string;
-  set_name: string | null;
-  delta_e: number;
-  abs_diff: number;
-}
-
 export async function fetchRecentBids(limit = 50, includeDyes = true): Promise<RecentBid[] | null> {
   const res = await fetch(`${API_URL}/auctions/recent-bids?limit=${limit}&include_dyes=${includeDyes}`);
   if (!res.ok) return null;
@@ -409,21 +342,6 @@ export async function fetchAuctionStats(
   const res = await fetch(`${API_URL}/auctions/stats${query ? `?${query}` : ""}`);
   if (!res.ok) return null;
   return res.json();
-}
-
-export interface VisualizationRequest {
-  min_de: number;
-  max_de: number;
-  input_hex_codes?: string[];
-  input_seymours?: [string, PieceIndex][];
-  include_dyes: boolean;
-  max_points?: number;
-}
-
-export interface VisualizationStats {
-  count: number;
-  total: number;
-  percentage: number;
 }
 
 export async function fetchVisualizationStats(data: VisualizationRequest): Promise<VisualizationStats | null> {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { fetchActiveAuctions, fetchEndedAuctions, fetchRecentBids, fetchAuctionSets, fetchAuctionStats } from "@/lib/api";
-import type { RecentBid } from "@/lib/api";
+import type { RecentBid } from "@/types/auction";
 import type { ActiveAuction, EndedAuction, AuctionFilters as AuctionFiltersParams, AuctionStats } from "@/types/auction";
 import AuctionsGrid from "./AuctionsGrid";
 import AuctionFilters from "./AuctionFilters";

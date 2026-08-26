@@ -136,3 +136,34 @@ export interface SellOrderFilters {
   sort_by?: SortBy;
   sort_order?: SortOrder;
 }
+
+export interface FetchOrdersParams {
+  skip?: number;
+  limit?: number;
+  order_type?: OrderType;
+  set_name?: string;
+  piece_types?: number[];
+  tier?: string;
+  sort_by?: SortBy;
+  sort_order?: SortOrder;
+}
+
+export interface FetchMyOrdersParams {
+  skip?: number;
+  limit?: number;
+  status?: OrderStatus;
+  sort_by?: SortBy;
+  sort_order?: SortOrder;
+}
+
+export interface FetchFillableParams {
+  skip?: number;
+  limit?: number;
+  sort_by?: SortBy;
+  sort_order?: SortOrder;
+}
+
+export interface FetchSellOrdersParams extends SellOrderFilters {
+  skip?: number;
+  limit?: number;
+}

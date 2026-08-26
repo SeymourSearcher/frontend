@@ -4,20 +4,11 @@ import type { ActiveAuction, EndedAuction } from "@/types/auction";
 import { TIER_COLORS } from "./constants";
 import { formatPrice, formatTimestamp, formatTimeUntil } from "@/lib/format";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
+import { ColorSwatch } from "@/components/ui/ColorSwatch";
 
 interface AuctionCardProps {
   auction: ActiveAuction | EndedAuction;
   isEnded?: boolean;
-}
-
-function ColorSwatch({ hex, size = "md" }: { hex: string; size?: "sm" | "md" }) {
-  const sizeClass = size === "sm" ? "w-4 h-4" : "w-10 h-10";
-  return (
-    <div
-      className={`${sizeClass} rounded-md shrink-0`}
-      style={{ backgroundColor: `#${hex}` }}
-    />
-  );
 }
 
 function TierBadge({ tier }: { tier: string }) {
@@ -47,7 +38,7 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
   return (
     <div className="bg-[#1a1a1a] rounded-lg p-4 hover:bg-[#252525] transition-colors flex flex-col h-full">
       <div className="flex items-start gap-3 flex-1">
-        <ColorSwatch hex={auction.hex_color} />
+        <ColorSwatch hex={auction.hex_color} size="lg" />
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
             <span

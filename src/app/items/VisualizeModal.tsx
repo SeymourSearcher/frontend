@@ -1,12 +1,8 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import {
-  fetchVisualizationStats,
-  fetchVisualizationHtml,
-  VisualizationRequest,
-  VisualizationStats,
-} from "@/lib/api";
+import { fetchVisualizationStats, fetchVisualizationHtml } from "@/lib/api";
+import type { VisualizationRequest, VisualizationStats } from "@/types/visualization";
 import { PieceIndex } from "@/lib/pieces";
 
 type HexMode = "my" | "all";

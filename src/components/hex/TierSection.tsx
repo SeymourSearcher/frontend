@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { HexUser } from "@/lib/api";
+import type { HexUser } from "@/types/hex";
 import { TIER_CONFIG, TierKey } from "./tierConfig";
 import { UserChip } from "./UserChip";
 
