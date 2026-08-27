@@ -3,12 +3,12 @@
 import type { RecentBid } from "@/types/auction";
 import { formatPrice, formatTimestamp } from "@/lib/format";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
-import { ColorSwatch } from "@/components/ui/ColorSwatch";
+import { MinecraftItem } from "@/components/ui/MinecraftItem";
 
 function BidRow({ bid }: { bid: RecentBid }) {
   return (
     <div className="flex items-center gap-3 py-3 px-4 hover:bg-[#1f1f1f] transition-colors border-b border-[#2a2a2a] last:border-b-0">
-      <ColorSwatch hex={bid.hex_color} size="md" />
+      <MinecraftItem piece={bid.piece} hex={bid.hex_color} scale={2} />
       
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">

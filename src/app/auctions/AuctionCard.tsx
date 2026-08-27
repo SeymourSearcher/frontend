@@ -5,6 +5,7 @@ import { TIER_COLORS } from "./constants";
 import { formatPrice, formatTimestamp, formatTimeUntil } from "@/lib/format";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 import { ColorSwatch } from "@/components/ui/ColorSwatch";
+import { MinecraftItem } from "@/components/ui/MinecraftItem";
 
 interface AuctionCardProps {
   auction: ActiveAuction | EndedAuction;
@@ -38,7 +39,7 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
   return (
     <div className="bg-[#1a1a1a] rounded-lg p-4 hover:bg-[#252525] transition-colors flex flex-col h-full">
       <div className="flex items-start gap-3 flex-1">
-        <ColorSwatch hex={auction.hex_color} size="lg" />
+        <MinecraftItem piece={auction.piece} hex={auction.hex_color} scale={3} />
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
             <span
