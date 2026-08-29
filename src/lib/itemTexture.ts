@@ -45,12 +45,19 @@ function scratchContext(): CanvasRenderingContext2D | null {
   return scratch;
 }
 
+/** Keyed `piece:hex`. Item lists re-render every sprite on each filter change, so encoding is not free. */
+const tinted = new Map<string, string>();
+
 /** Returns a 16x16 PNG data URL, or null when there is no DOM or the hex is malformed. */
 export function tintPieceTexture(piece: PieceIndex, hex: string): string | null {
   if (typeof document === "undefined") return null;
 
   const clean = cleanHexInput(hex);
   if (!isValidHex(clean)) return null;
+
+  const key = `${piece}:${clean}`;
+  const cached = tinted.get(key);
+  if (cached) return cached;
 
   const context = scratchContext();
   if (!context) return null;
@@ -74,5 +81,8 @@ export function tintPieceTexture(piece: PieceIndex, hex: string): string | null 
   }
 
   context.putImageData(new ImageData(rgba, SIZE, SIZE), 0, 0);
-  return context.canvas.toDataURL();
+
+  const url = context.canvas.toDataURL();
+  tinted.set(key, url);
+  return url;
 }

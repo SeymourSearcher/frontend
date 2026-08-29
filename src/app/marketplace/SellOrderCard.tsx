@@ -7,7 +7,7 @@ import CancelOrderButton from "./CancelOrderButton";
 import DiscordUserLink from "./DiscordUserLink";
 import OrderCardFooter from "./OrderCardFooter";
 import OrderStatusBadge from "./OrderStatusBadge";
-import OrderSwatch from "./OrderSwatch";
+import { MinecraftItem } from "@/components/ui/MinecraftItem";
 
 interface SellOrderCardProps {
   order: SellOrder;
@@ -24,7 +24,7 @@ export default function SellOrderCard({ order, isOwn, onCancel }: SellOrderCardP
       {isOwn && <OrderStatusBadge status={order.status} />}
 
       <Link href={`/hex/${seymour.hex_color}`} className="flex items-center gap-3">
-        <OrderSwatch hexValue={seymour.hex_color} isSetPiece={false} />
+        <MinecraftItem piece={seymour.item_name} hex={seymour.hex_color} scale={3} />
         <div className="flex flex-col min-w-0">
           <span
             className="text-[12px] font-bold truncate"

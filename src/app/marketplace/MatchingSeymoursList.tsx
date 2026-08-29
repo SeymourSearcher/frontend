@@ -1,5 +1,6 @@
 import { MatchingSeymour } from "@/types/marketplace";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
+import { MinecraftItem } from "@/components/ui/MinecraftItem";
 
 export default function MatchingSeymoursList({ seymours }: { seymours: MatchingSeymour[] }) {
   return (
@@ -11,10 +12,7 @@ export default function MatchingSeymoursList({ seymours }: { seymours: MatchingS
             key={s.id}
             className="flex items-center gap-1 bg-[#252525] px-1.5 py-0.5 rounded text-[9px]"
           >
-            <span
-              className="w-2.5 h-2.5 rounded-sm"
-              style={{ backgroundColor: `#${s.hex_color}` }}
-            />
+            <MinecraftItem piece={s.item_name} hex={s.hex_color} scale={1} slot={false} />
             <span className="text-[#ccc]">{PIECE_SLOT_NAMES[s.item_name]}</span>
           </div>
         ))}
