@@ -17,7 +17,7 @@ export default function FillableOrderCard({ fillable }: FillableOrderCardProps) 
   return (
     <div className="bg-[#1a1a1a] rounded-lg p-4 hover:bg-[#252525] transition-colors">
       <div className="flex items-center gap-3">
-        <OrderSwatch hexValue={order.hex_criteria?.hex_value} isSetPiece={isSetPiece} />
+        <OrderSwatch hexCriteria={order.hex_criteria} isSetPiece={isSetPiece} />
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
             <OrderTypeBadge isSetPiece={isSetPiece} />

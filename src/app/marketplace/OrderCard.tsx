@@ -22,7 +22,7 @@ export default function OrderCard({ order, isOwn, onCancel }: OrderCardProps) {
       {isOwn && <OrderStatusBadge status={order.status} />}
 
       <div className="flex items-center gap-3 flex-1">
-        <OrderSwatch hexValue={order.hex_criteria?.hex_value} isSetPiece={isSetPiece} />
+        <OrderSwatch hexCriteria={order.hex_criteria} isSetPiece={isSetPiece} />
         <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
             <OrderTypeBadge isSetPiece={isSetPiece} />
