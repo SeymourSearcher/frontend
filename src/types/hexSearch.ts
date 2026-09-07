@@ -17,14 +17,18 @@ export interface HexSearchResult {
   tier: string | null;
   owners: HexSearchOwner[];
   owner_count: number;
+  /** Always false when logged out — the API knows of no "me" to compare against. */
+  owned_by_me: boolean;
 }
 
 export interface HexSearchPage {
   pattern: string;
-  /** What the pattern denotes, before any filter. Up to 16,777,216. */
+  /** What the pattern denotes across the whole colour space. Up to 16,777,216. */
   pattern_total: number;
-  /** What survived the tier and ownership filters; what `offset` pages over. */
+  /** How many of those anyone holds, after the filters; what `offset` pages over. */
   total: number;
+  /** What was actually applied — false for a logged-out caller that asked for it. */
+  mine_only: boolean;
   limit: number;
   offset: number;
   items: HexSearchResult[];
@@ -32,7 +36,7 @@ export interface HexSearchPage {
 
 export interface HexSearchParams {
   includeDyes?: boolean;
-  ownedOnly?: boolean;
+  mineOnly?: boolean;
   tier?: HexStatsTier;
   pieces?: PieceIndex[];
   limit?: number;

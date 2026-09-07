@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { fetchHexSearch } from "@/lib/api";
 import { useAsyncData } from "@/hooks/useAsyncData";
+import { useAuth } from "@/contexts/AuthContext";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { PatternFilters } from "@/components/search/PatternFilters";
 import { PatternLegend } from "@/components/search/PatternLegend";
@@ -18,12 +19,12 @@ const MAX_OFFSET = 10_000;
 
 interface Filters {
   includeDyes: boolean;
-  ownedOnly: boolean;
+  mineOnly: boolean;
   tier: HexStatsTier;
   pieces: PieceIndex[];
 }
 
-const DEFAULTS: Filters = { includeDyes: false, ownedOnly: false, tier: "all", pieces: [] };
+const DEFAULTS: Filters = { includeDyes: false, mineOnly: false, tier: "all", pieces: [] };
 
 const GRID = "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3";
 
@@ -38,9 +39,10 @@ function Skeleton() {
 }
 
 export function PatternResults({ pattern }: { pattern: string }) {
+  const { user } = useAuth();
   const [filters, setFilters] = useState(DEFAULTS);
   const [offset, setOffset] = useState(0);
-  const { includeDyes, ownedOnly, tier, pieces } = filters;
+  const { includeDyes, mineOnly, tier, pieces } = filters;
   const pieceKey = pieces.join(",");
 
   /** Narrowing the result set invalidates the offset, so the two move together. */
@@ -53,13 +55,13 @@ export function PatternResults({ pattern }: { pattern: string }) {
     () =>
       fetchHexSearch(pattern, {
         includeDyes,
-        ownedOnly,
+        mineOnly,
         tier: tier === "all" ? undefined : tier,
         pieces,
         limit: PAGE_SIZE,
         offset,
       }),
-    [pattern, includeDyes, ownedOnly, tier, pieceKey, offset]
+    [pattern, includeDyes, mineOnly, tier, pieceKey, offset]
   );
 
   const page = state.status === "success" ? state.data : null;
@@ -73,8 +75,9 @@ export function PatternResults({ pattern }: { pattern: string }) {
       <PatternFilters
         includeDyes={includeDyes}
         onIncludeDyesChange={(includeDyes) => patch({ includeDyes })}
-        ownedOnly={ownedOnly}
-        onOwnedOnlyChange={(ownedOnly) => patch({ ownedOnly })}
+        mineOnly={mineOnly}
+        onMineOnlyChange={(mineOnly) => patch({ mineOnly })}
+        canFilterMine={user !== null}
         tier={tier}
         onTierChange={(tier) => patch({ tier })}
         pieces={pieces}
@@ -83,9 +86,9 @@ export function PatternResults({ pattern }: { pattern: string }) {
 
       {page && (
         <p className="text-[11px] text-[#888] mb-3">
-          {page.total.toLocaleString()} colour{page.total === 1 ? "" : "s"}
-          {page.total !== page.pattern_total &&
-            ` of ${page.pattern_total.toLocaleString()} matching ${pattern}`}
+          {page.total.toLocaleString()} owned colour{page.total === 1 ? "" : "s"}
+          {page.mine_only ? " of yours" : ""} of the{" "}
+          {page.pattern_total.toLocaleString()} that {pattern} can match
           {page.items.length > 0 && ` · showing ${offset + 1}–${offset + page.items.length}`}
         </p>
       )}

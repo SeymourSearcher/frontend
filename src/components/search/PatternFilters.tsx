@@ -9,8 +9,10 @@ import type { HexStatsTier } from "@/types/hex";
 interface PatternFiltersProps {
   includeDyes: boolean;
   onIncludeDyesChange: (value: boolean) => void;
-  ownedOnly: boolean;
-  onOwnedOnlyChange: (value: boolean) => void;
+  mineOnly: boolean;
+  onMineOnlyChange: (value: boolean) => void;
+  /** Nothing to narrow to when logged out, so the toggle is unavailable. */
+  canFilterMine: boolean;
   tier: HexStatsTier;
   onTierChange: (tier: HexStatsTier) => void;
   pieces: PieceIndex[];
@@ -20,8 +22,9 @@ interface PatternFiltersProps {
 export function PatternFilters({
   includeDyes,
   onIncludeDyesChange,
-  ownedOnly,
-  onOwnedOnlyChange,
+  mineOnly,
+  onMineOnlyChange,
+  canFilterMine,
   tier,
   onTierChange,
   pieces,
@@ -41,9 +44,11 @@ export function PatternFilters({
 
         <div className="w-px h-5 bg-[#333] mx-1" />
 
-        <FilterButton active={ownedOnly} onClick={() => onOwnedOnlyChange(!ownedOnly)}>
-          Owned only
-        </FilterButton>
+        {canFilterMine && (
+          <FilterButton active={mineOnly} onClick={() => onMineOnlyChange(!mineOnly)}>
+            {mineOnly ? "Mine" : "Everyone"}
+          </FilterButton>
+        )}
 
         <label className="flex items-center gap-2 text-[12px] text-[#888] cursor-pointer ml-1">
           <input
@@ -60,7 +65,8 @@ export function PatternFilters({
 
       {/* The asymmetry is deliberate but invisible; unlabelled it reads as a bug. */}
       <p className="text-[11px] text-[#666] -mt-2">
-        Slots filter owners only — ΔE is always the global nearest match.
+        Results are colours someone owns. Slots filter owners only — ΔE is always the
+        global nearest match.
       </p>
     </div>
   );

@@ -266,7 +266,7 @@ export function fetchHexSearch(pattern: string, params: HexSearchParams = {}) {
   const query = toQuery({
     p: pattern,
     include_dyes: params.includeDyes || undefined,
-    owned_only: params.ownedOnly || undefined,
+    mine_only: params.mineOnly || undefined,
     tier: params.tier,
     pieces: params.pieces?.length ? params.pieces.join(",") : undefined,
     limit: params.limit,
