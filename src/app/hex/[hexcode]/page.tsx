@@ -10,6 +10,8 @@ import { StatusMessage } from "@/components/ui/StatusMessage";
 import { HexHero } from "@/components/hex/HexHero";
 import { OwnersNearby } from "@/components/hex/OwnersNearby";
 import { CATALOG_ROW_HEIGHT, CatalogMatchRow } from "@/components/hex/CatalogMatchRow";
+import { PieceFilter } from "@/components/hex/PieceFilter";
+import type { PieceIndex } from "@/lib/pieces";
 
 const CATALOG_COUNT = 3;
 
@@ -32,19 +34,29 @@ export default function HexPage() {
   const valid = isValidHex(hexcode);
 
   const [includeDyes, setIncludeDyes] = useState(false);
+  const [pieces, setPieces] = useState<PieceIndex[]>([]);
+  const pieceKey = pieces.join(",");
 
   const { state } = useAsyncData<HexInfo>(
     () =>
       valid
-        ? fetchHexInfo(hexcode, includeDyes)
+        ? fetchHexInfo(hexcode, includeDyes, pieces)
         : Promise.resolve({ ok: false, status: 400, detail: "Invalid hex code" }),
-    [hexcode, includeDyes]
+    [hexcode, includeDyes, pieceKey]
   );
+
+  const info = state.status === "success" ? state.data : null;
+  // The exact colour is what to price when there is one; otherwise the nearest.
+  const reference = info?.exact_match ?? info?.top_matches[0] ?? null;
 
   return (
     <main className="min-h-screen bg-[#121212] px-4 py-6 sm:p-6 font-['MinecraftSeven',Arial,sans-serif]">
       <div className="max-w-[900px] mx-auto">
-        <HexHero hexcode={valid ? hexcode : "333333"}>
+        <HexHero
+          hexcode={valid ? hexcode : "333333"}
+          reference={reference}
+          exact={info?.exact_match ?? null}
+        >
           <label className="flex items-center gap-2 text-[12px] text-[#888] cursor-pointer">
             <input
               type="checkbox"
@@ -56,8 +68,10 @@ export default function HexPage() {
           </label>
         </HexHero>
 
+        <PieceFilter selected={pieces} onChange={setPieces} />
+
         {/* Keyed so navigating to another hex drops the page offset with it. */}
-        {valid && <OwnersNearby key={hexcode} hexcode={hexcode} />}
+        {valid && <OwnersNearby key={hexcode} hexcode={hexcode} pieces={pieces} />}
 
         <h2 className="text-[#888] text-[12px] mb-3">Closest catalog items</h2>
         <div className="space-y-2">

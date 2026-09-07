@@ -8,6 +8,12 @@ export interface HexUser {
   delta_e: number;
 }
 
+/** median is null when nothing comparable has sold — not a price of zero. */
+export interface HexPrice {
+  median: number | null;
+  sales: number;
+}
+
 export interface HexMatch {
   target_name: string;
   target_hex: string;
@@ -18,10 +24,13 @@ export interface HexMatch {
     t2: HexUser[];
     t3: HexUser[];
   };
+  price: HexPrice;
 }
 
 export interface HexInfo {
   hex_code: string;
+  /** Set when the searched colour is itself a catalog colour; absent from top_matches. */
+  exact_match: HexMatch | null;
   top_matches: HexMatch[];
 }
 

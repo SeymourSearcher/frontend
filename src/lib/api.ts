@@ -178,12 +178,26 @@ export function fetchRankings(sortBy?: keyof Stats) {
   return request<RankingUser[]>(`/stats/rankings${toQuery({ sort_by: sortBy })}`);
 }
 
-export function fetchHexInfo(hexCode: string, includeDyes = false) {
-  return request<HexInfo>(`/hex/${hexCode}${toQuery({ include_dyes: includeDyes || undefined })}`);
+export function fetchHexInfo(hexCode: string, includeDyes = false, pieces?: PieceIndex[]) {
+  const query = toQuery({
+    include_dyes: includeDyes || undefined,
+    pieces: pieces?.length ? pieces.join(",") : undefined,
+  });
+  return request<HexInfo>(`/hex/${hexCode}${query}`);
 }
 
-export function fetchHexOwners(hexCode: string, limit: number, offset: number) {
-  return request<HexOwnersPage>(`/hex/${hexCode}/owners${toQuery({ limit, offset })}`);
+export function fetchHexOwners(
+  hexCode: string,
+  limit: number,
+  offset: number,
+  pieces?: PieceIndex[]
+) {
+  const query = toQuery({
+    limit,
+    offset,
+    pieces: pieces?.length ? pieces.join(",") : undefined,
+  });
+  return request<HexOwnersPage>(`/hex/${hexCode}/owners${query}`);
 }
 
 export function fetchOrders(params: FetchOrdersParams = {}) {

@@ -1,51 +1,46 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchHexOwners } from "@/lib/api";
 import type { HexOwnerMatch, HexOwnersPage } from "@/types/hex";
-import { PIECE_SLOT_NAMES } from "@/lib/pieces";
+import { PIECE_SLOT_NAMES, type PieceIndex } from "@/lib/pieces";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { StatusMessage } from "@/components/ui/StatusMessage";
-import { ColorSwatch } from "@/components/ui/ColorSwatch";
+import { MinecraftItem } from "@/components/ui/MinecraftItem";
 import { Avatar } from "@/components/Avatar";
 
 const PAGE_SIZE = 5;
 
-// The block is reserved at its full height -- five rows plus the pager -- so
-// loading, a short last page and an empty result all leave the page unmoved.
-const ROW_CLASS = "flex items-center gap-3 bg-[#252525] rounded px-3 h-10";
-const LIST_CLASS = "space-y-2 min-h-[232px]";
+// The grid is five fixed slots and the pager is always present, so loading, a
+// short last page and an empty result all leave the page unmoved.
+const GRID_CLASS = "grid grid-cols-5 gap-2 min-h-[136px]";
+const TILE_CLASS = "flex flex-col items-center gap-1 py-2";
 const PAGER_CLASS = "flex items-center justify-end gap-2 h-10";
 
-function OwnerRow({ match }: { match: HexOwnerMatch }) {
+function OwnerTile({ match }: { match: HexOwnerMatch }) {
   return (
-    <li className={ROW_CLASS}>
-      <Avatar user={match} alt="" />
-      <span className="text-[12px] text-[#ccc] truncate">{match.username}</span>
-      <span className="text-[11px] text-[#888]">{PIECE_SLOT_NAMES[match.piece]}</span>
-      <ColorSwatch hex={match.hex_color} size="sm" />
-      <span className="text-[11px] text-[#888]">#{match.hex_color}</span>
-      <span className="ml-auto text-[11px] text-[#aaa]">ΔE {match.delta_e}</span>
-      {match.quantity > 1 && (
-        <span className="text-[10px] text-[#666]">×{match.quantity}</span>
-      )}
+    <li className={TILE_CLASS}>
+      <MinecraftItem piece={match.piece} hex={match.hex_color} scale={3} />
+      <Avatar user={match} size="sm" alt="" />
+      <span className="text-[11px] text-[#ccc] truncate max-w-full">{match.username}</span>
+      <span className="text-[10px] text-[#666]">{PIECE_SLOT_NAMES[match.piece]}</span>
+      <span className="text-[10px] text-[#aaa]">
+        ΔE {match.delta_e}
+        {match.quantity > 1 && <span className="text-[#666]"> ×{match.quantity}</span>}
+      </span>
     </li>
   );
 }
 
-function FillerRows({ count, pulse = false }: { count: number; pulse?: boolean }) {
+function FillerTiles({ count, pulse = false }: { count: number; pulse?: boolean }) {
   return Array.from({ length: count }, (_, i) => (
-    <li key={i} className={`${ROW_CLASS} ${pulse ? "animate-pulse" : "invisible"}`} aria-hidden />
+    <li key={i} className={TILE_CLASS} aria-hidden>
+      <div className={`w-12 h-12 rounded bg-[#1e1e1e] ${pulse ? "animate-pulse" : "invisible"}`} />
+    </li>
   ));
 }
 
-function Shell({
-  count,
-  children,
-}: {
-  count: string;
-  children: React.ReactNode;
-}) {
+function Shell({ count, children }: { count: string; children: React.ReactNode }) {
   return (
     <section className="mb-6">
       <div className="flex items-baseline justify-between mb-3">
@@ -57,19 +52,23 @@ function Shell({
   );
 }
 
-export function OwnersNearby({ hexcode }: { hexcode: string }) {
+export function OwnersNearby({ hexcode, pieces }: { hexcode: string; pieces: PieceIndex[] }) {
   const [page, setPage] = useState(0);
+  const pieceKey = pieces.join(",");
+
+  // Narrowing the slots shortens the list, so a held offset could land past its end.
+  useEffect(() => setPage(0), [pieceKey]);
 
   const { state } = useAsyncData<HexOwnersPage>(
-    () => fetchHexOwners(hexcode, PAGE_SIZE, page * PAGE_SIZE),
-    [hexcode, page]
+    () => fetchHexOwners(hexcode, PAGE_SIZE, page * PAGE_SIZE, pieces),
+    [hexcode, page, pieceKey]
   );
 
   if (state.status === "loading") {
     return (
       <Shell count="">
-        <ul className={LIST_CLASS}>
-          <FillerRows count={PAGE_SIZE} pulse />
+        <ul className={GRID_CLASS}>
+          <FillerTiles count={PAGE_SIZE} pulse />
         </ul>
         <div className={PAGER_CLASS} />
       </Shell>
@@ -79,7 +78,7 @@ export function OwnersNearby({ hexcode }: { hexcode: string }) {
   if (state.status === "error") {
     return (
       <Shell count="">
-        <div className={LIST_CLASS}>
+        <div className={GRID_CLASS}>
           <StatusMessage tone="error">{state.detail}</StatusMessage>
         </div>
         <div className={PAGER_CLASS} />
@@ -94,14 +93,14 @@ export function OwnersNearby({ hexcode }: { hexcode: string }) {
 
   return (
     <Shell count={`${total} within ΔE ${max_delta_e.toFixed(1)}`}>
-      <ul className={LIST_CLASS}>
+      <ul className={GRID_CLASS}>
         {items.map((match) => (
-          <OwnerRow
+          <OwnerTile
             key={`${match.discord_id}-${match.piece}-${match.hex_color}`}
             match={match}
           />
         ))}
-        <FillerRows count={PAGE_SIZE - items.length} />
+        <FillerTiles count={PAGE_SIZE - items.length} />
       </ul>
 
       <div className={PAGER_CLASS}>

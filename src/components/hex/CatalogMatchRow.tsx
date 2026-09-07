@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { HexMatch } from "@/types/hex";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 import { ColorSwatch } from "@/components/ui/ColorSwatch";
+import { formatPrice } from "@/lib/format";
 import { TierBadge } from "./TierBadge";
 import { TierSection } from "./TierSection";
 
@@ -36,6 +37,16 @@ export function CatalogMatchRow({ match, rank }: { match: HexMatch; rank: number
             #{match.target_hex}
           </span>
           <span className="ml-auto text-[#aaa] text-[11px]">ΔE {match.delta_e}</span>
+          <span className="text-[11px] w-[92px] text-right">
+            {match.price.median === null ? (
+              <span className="text-[#555]">no sales</span>
+            ) : (
+              <>
+                <span className="text-[#ccc]">{formatPrice(match.price.median)}</span>
+                <span className="text-[#666]"> / {match.price.sales}</span>
+              </>
+            )}
+          </span>
           <span className="flex items-center gap-1">
             <TierBadge tier="t1" count={tiers.t1.length} />
             <TierBadge tier="t2" count={tiers.t2.length} />
