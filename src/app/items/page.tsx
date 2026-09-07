@@ -112,47 +112,49 @@ export default function ItemsPage() {
         </div>
       )}
 
-      <div className="flex justify-center items-center gap-2 mb-4">
-        <div className="flex flex-wrap justify-center items-center gap-2">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setFilter(f.key)}
-              className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer transition-colors ${
-                filter === f.key ? "bg-[#5865F2] text-white" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
-              }`}
-            >
-              {f.label}
-              {stats && f.key !== "all" && f.key !== "custom" && (
-                <span className="ml-1 opacity-70">({getStatCount(f.key)})</span>
-              )}
-            </button>
-          ))}
+      {/* One wrap context: nesting the chips let the checkbox group's fixed
+          width squeeze them, stranding Visualize on a line of its own. */}
+      <div className="flex flex-wrap justify-center items-center gap-2 mb-4">
+        {FILTERS.map((f) => (
           <button
-            onClick={toggleSort}
-            className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 flex items-center gap-1 ${
-              sortDirection ? "bg-[#5865F2] text-white" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
+            key={f.key}
+            onClick={() => setFilter(f.key)}
+            className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer transition-colors ${
+              filter === f.key ? "bg-[#5865F2] text-white" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
             }`}
           >
-            ΔE {sortDirection === "asc" ? "↑" : sortDirection === "desc" ? "↓" : ""}
+            {f.label}
+            {stats && f.key !== "all" && f.key !== "custom" && (
+              <span className="ml-1 opacity-70">({getStatCount(f.key)})</span>
+            )}
           </button>
-          {user && (
-            <button
-              onClick={toggleSellMode}
-              className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 ${
-                sellMode ? "bg-[#4ade80] text-[#121212]" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
-              }`}
-            >
-              {sellMode ? "Exit Sell Mode" : "Sell"}
-            </button>
-          )}
+        ))}
+        <button
+          onClick={toggleSort}
+          className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 flex items-center gap-1 ${
+            sortDirection ? "bg-[#5865F2] text-white" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
+          }`}
+        >
+          ΔE {sortDirection === "asc" ? "↑" : sortDirection === "desc" ? "↓" : ""}
+        </button>
+        {user && (
           <button
-            onClick={() => setShowVisualizeModal(true)}
-            className="px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 bg-[#333] text-[#ccc] hover:bg-[#444]"
+            onClick={toggleSellMode}
+            className={`px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 ${
+              sellMode ? "bg-[#4ade80] text-[#121212]" : "bg-[#333] text-[#ccc] hover:bg-[#444]"
+            }`}
           >
-            Visualize
+            {sellMode ? "Exit Sell Mode" : "Sell"}
           </button>
-        </div>
+        )}
+        <button
+          onClick={() => setShowVisualizeModal(true)}
+          className="px-3 py-1 rounded text-[12px] border-none cursor-pointer ml-2 bg-[#333] text-[#ccc] hover:bg-[#444]"
+        >
+          Visualize
+        </button>
+        {/* Wraps as a unit; the reserved width keeps the row steady as the
+            conditional checkboxes come and go. */}
         <div className="flex items-center gap-2 min-w-[200px]">
           {canIncludeDyes && (
             <label className="flex items-center gap-1.5 cursor-pointer">
