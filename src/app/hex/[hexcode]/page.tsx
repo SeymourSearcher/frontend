@@ -9,7 +9,22 @@ import { useAsyncData } from "@/hooks/useAsyncData";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { HexHero } from "@/components/hex/HexHero";
 import { OwnersNearby } from "@/components/hex/OwnersNearby";
-import { CatalogMatchRow } from "@/components/hex/CatalogMatchRow";
+import { CATALOG_ROW_HEIGHT, CatalogMatchRow } from "@/components/hex/CatalogMatchRow";
+
+const CATALOG_COUNT = 3;
+
+function CatalogSkeleton() {
+  return (
+    <>
+      {Array.from({ length: CATALOG_COUNT }, (_, i) => (
+        <div
+          key={i}
+          className={`bg-[#1a1a1a] border border-[#2c2c2c] rounded animate-pulse ${CATALOG_ROW_HEIGHT}`}
+        />
+      ))}
+    </>
+  );
+}
 
 export default function HexPage() {
   const params = useParams();
@@ -45,19 +60,19 @@ export default function HexPage() {
         {valid && <OwnersNearby key={hexcode} hexcode={hexcode} />}
 
         <h2 className="text-[#888] text-[12px] mb-3">Closest catalog items</h2>
-        {state.status === "loading" ? (
-          <StatusMessage>Loading...</StatusMessage>
-        ) : state.status === "error" ? (
-          <StatusMessage tone="error">{state.detail}</StatusMessage>
-        ) : state.data.top_matches.length > 0 ? (
-          <div className="space-y-2">
-            {state.data.top_matches.map((match, idx) => (
+        <div className="space-y-2">
+          {state.status === "loading" ? (
+            <CatalogSkeleton />
+          ) : state.status === "error" ? (
+            <StatusMessage tone="error">{state.detail}</StatusMessage>
+          ) : state.data.top_matches.length > 0 ? (
+            state.data.top_matches.map((match, idx) => (
               <CatalogMatchRow key={match.target_hex} match={match} rank={idx + 1} />
-            ))}
-          </div>
-        ) : (
-          <StatusMessage>No matches found</StatusMessage>
-        )}
+            ))
+          ) : (
+            <StatusMessage>No matches found</StatusMessage>
+          )}
+        </div>
       </div>
     </main>
   );

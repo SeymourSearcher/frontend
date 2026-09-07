@@ -41,8 +41,11 @@ export function HexSearchInput({
     onNavigate?.();
   }
 
-  const previewColor = showPreview && isValid ? `#${input}` : "#333";
-  const inputColor = colorizeInput && isValid ? `#${input}` : undefined;
+  // Padding the partial code lets the colour drift toward the real one while
+  // typing and land on it exactly at six characters.
+  const partialColor = input.length > 0 ? `#${input.padEnd(HEX_LENGTH, "0")}` : null;
+  const previewColor = showPreview ? partialColor ?? "#333" : "#333";
+  const inputColor = colorizeInput ? partialColor ?? undefined : undefined;
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col items-center gap-2">
@@ -60,7 +63,12 @@ export function HexSearchInput({
           placeholder={placeholder}
           maxLength={HEX_LENGTH}
           className={inputClassName}
-          style={inputColor ? { color: inputColor } : undefined}
+          // The glow is what keeps a dark hex legible against the dark field.
+          style={
+            inputColor
+              ? { color: inputColor, textShadow: "0 0 3px rgba(255,255,255,0.45)" }
+              : undefined
+          }
         />
         <button
           type="submit"
@@ -71,9 +79,12 @@ export function HexSearchInput({
         </button>
         {children}
       </div>
-      {showHint && input.length > 0 && !isValid && (
-        <span className="text-[#888] text-[11px]">
-          {remaining} more character{remaining === 1 ? "" : "s"}
+      {/* Always rendered: letting it appear and vanish shifts everything below. */}
+      {showHint && (
+        <span className="text-[#888] text-[11px] h-[13px] leading-[13px]">
+          {input.length > 0 && !isValid
+            ? `${remaining} more character${remaining === 1 ? "" : "s"}`
+            : " "}
         </span>
       )}
     </form>
