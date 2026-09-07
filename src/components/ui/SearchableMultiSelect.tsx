@@ -108,12 +108,15 @@ export function SearchableMultiSelect({
 
   return (
     <div ref={containerRef} className="relative">
+      {/* Rendered rather than hidden while the options are still loading, so the
+          row it sits in keeps its height. Nothing to open until they arrive. */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
+        disabled={options.length === 0}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
-        className="bg-[#222] text-[#ccc] border border-[#444] rounded px-3 py-1 text-[12px] cursor-pointer flex items-center gap-2 min-w-[160px] justify-between"
+        className="bg-[#222] text-[#ccc] border border-[#444] rounded px-3 py-1 text-[12px] cursor-pointer flex items-center gap-2 min-w-[160px] justify-between disabled:opacity-50 disabled:cursor-default"
       >
         <span className="truncate">{buttonLabel}</span>
         <span className={`transition-transform ${isOpen ? "rotate-180" : ""}`}>▼</span>

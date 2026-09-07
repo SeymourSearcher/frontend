@@ -248,13 +248,15 @@ export function fetchHexSales(
   includeDyes = false,
   pieces?: PieceIndex[],
   tier?: HexStatsTier,
-  limit = 8
+  limit = 8,
+  offset = 0
 ) {
   const query = toQuery({
     include_dyes: includeDyes || undefined,
     pieces: pieces?.length ? pieces.join(",") : undefined,
     tier,
     limit,
+    offset,
   });
   return request<HexSalesPage>(`/hex/${hexCode}/sales${query}`);
 }

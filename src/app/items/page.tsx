@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useSeymours } from "@/hooks/useSeymours";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { useSellMode } from "@/hooks/useSellMode";
@@ -28,11 +28,13 @@ function chipValue(key: FilterType, value: CollectionValue | null): string {
   return amount ? formatPrice(amount) : "";
 }
 
+/** `total` is null until /stats/me lands. The paragraph still renders, empty:
+ *  mounting it on arrival pushed the chips, the dropdown and the grid down. */
 function CollectionSummary({
   total,
   value,
 }: {
-  total: number;
+  total: number | null;
   value: CollectionValue | null;
 }) {
   return (
@@ -42,7 +44,7 @@ function CollectionSummary({
       // part a reader would otherwise assume away by adding the chips up.
       title="Estimated from median sale prices of each colour's nearest catalog match, at its own tier. Per-chip figures overlap — one item can be a Star and T1 and part of a set — so they do not sum to the total."
     >
-      Total: {total}
+      {total !== null && `Total: ${total}`}
       {value && value.priced > 0 && (
         <>
           {" · est. "}
@@ -115,12 +117,16 @@ export default function ItemsPage() {
   const [showVisualizeModal, setShowVisualizeModal] = useState(false);
   const [userSeymours, setUserSeymours] = useState<[string, PieceIndex][]>([]);
 
+  // Only the modal reads these, so the request waits for it to open rather than
+  // competing on load with the three calls the page actually renders from.
+  const hexesRequested = useRef(false);
   useEffect(() => {
-    if (!isAuthed) return;
+    if (!isAuthed || !showVisualizeModal || hexesRequested.current) return;
+    hexesRequested.current = true;
     fetchUserSeymourHexes().then((result) => {
       if (result.ok) setUserSeymours(result.data);
     });
-  }, [isAuthed]);
+  }, [isAuthed, showVisualizeModal]);
 
   const userHexes = useMemo(
     () => [...new Set(userSeymours.map(([hex]) => hex))],
@@ -142,9 +148,11 @@ export default function ItemsPage() {
     <main className={mainClasses}>
       <h1 className="text-[1.5em] text-[#f0f0f0] mb-4 text-center">My Seymours</h1>
 
-      {stats && (
-        <CollectionSummary total={stats.total_seymours} value={collectionValue} />
-      )}
+      <CollectionSummary
+        total={stats?.total_seymours ?? null}
+        value={collectionValue}
+      />
+
 
       {successCount !== null && (
         <div className="max-w-[600px] mx-auto mb-4 bg-[#1a3a1a] border border-[#4ade80] rounded-lg p-3 flex items-center justify-between">
@@ -172,8 +180,12 @@ export default function ItemsPage() {
             }`}
           >
             {f.label}
-            {stats && f.key !== "all" && f.key !== "custom" && (
-              <span className="ml-1 opacity-70">({getStatCount(f.key)})</span>
+            {/* Rendered before the count arrives, at the width of a two-digit
+                one: growing a chip re-wraps the whole row, which moves the grid. */}
+            {f.key !== "all" && f.key !== "custom" && (
+              <span className="ml-1 opacity-70 inline-block min-w-[3ch] text-center">
+                {stats && `(${getStatCount(f.key)})`}
+              </span>
             )}
             {/* Always rendered so the row does not jump when values arrive. */}
             <span className="block text-[9px] leading-[11px] opacity-70 min-h-[11px]">
@@ -233,7 +245,10 @@ export default function ItemsPage() {
         </div>
       </div>
 
-      {hasSubFilter && availableSubFilters.length > 0 && (
+      {/* Mounted on hasSubFilter alone, which is known synchronously. Waiting for
+          the options to arrive inserted this row a request later, under content
+          the user was already reading. */}
+      {hasSubFilter && (
         <div className="flex justify-center mb-6">
           <SearchableMultiSelect
             options={availableSubFilters}
@@ -246,6 +261,9 @@ export default function ItemsPage() {
         </div>
       )}
 
+      {/* Floored so switching filters does not collapse a full grid to one line
+          of text and back, dragging everything below it up and down. */}
+      <div className="min-h-[70vh]">
       {loading ? (
         <StatusMessage>Loading...</StatusMessage>
       ) : loadError ? (
@@ -297,6 +315,7 @@ export default function ItemsPage() {
           ))}
         </div>
       )}
+      </div>
 
       {sellMode && (
         <SellActionBar
