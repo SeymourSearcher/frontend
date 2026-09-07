@@ -19,6 +19,8 @@ export interface HexMatch {
   target_name: string;
   target_hex: string;
   delta_e: number;
+  /** Manhattan distance in RGB, alongside the perceptual delta_e. */
+  abs_diff: number;
   pieces: PieceIndex[];
   users_by_tier: {
     t1: HexUser[];

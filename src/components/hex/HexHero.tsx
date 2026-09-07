@@ -5,7 +5,7 @@ import type { HexMatch } from "@/types/hex";
 import { HexSearchInput } from "@/components/HexSearchInput";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 import { formatPrice } from "@/lib/format";
-import { tierForDeltaE } from "./tierConfig";
+import { TIER_CONFIG, tierForDeltaE } from "./tierConfig";
 
 function ExactBanner({ match }: { match: HexMatch }) {
   return (
@@ -15,6 +15,26 @@ function ExactBanner({ match }: { match: HexMatch }) {
         {" "}
         · {match.pieces.map((p) => PIECE_SLOT_NAMES[p]).join(", ")}
       </span>
+    </p>
+  );
+}
+
+function Distances({ match, exact }: { match: HexMatch; exact: boolean }) {
+  const tier = tierForDeltaE(match.delta_e);
+
+  return (
+    <p className="text-[12px] text-[#ccc] flex items-center gap-3">
+      <span>
+        ΔE{" "}
+        <span className={`font-bold ${tier ? TIER_CONFIG[tier].color : "text-[#f0f0f0]"}`}>
+          {match.delta_e}
+        </span>
+      </span>
+      <span className="text-[#444]">|</span>
+      <span>
+        ABS <span className="text-[#f0f0f0] font-bold">{match.abs_diff}</span>
+      </span>
+      {!exact && <span className="text-[#666]">vs {match.target_name}</span>}
     </p>
   );
 }
@@ -73,8 +93,9 @@ export function HexHero({ hexcode, reference, exact, children }: HexHeroProps) {
         </HexSearchInput>
 
         {/* Fixed height: these fill in after the fetch and must not shift the page. */}
-        <div className="min-h-[34px] flex flex-col justify-center">
+        <div className="min-h-[52px] flex flex-col justify-center gap-0.5">
           {exact && <ExactBanner match={exact} />}
+          {reference && <Distances match={reference} exact={Boolean(exact)} />}
           {reference && <Estimate match={reference} />}
         </div>
       </div>
