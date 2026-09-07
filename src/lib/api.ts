@@ -18,7 +18,7 @@ import type {
   AuctionStats,
   RecentBid,
 } from "@/types/auction";
-import type { HexInfo } from "@/types/hex";
+import type { HexInfo, HexOwnersPage } from "@/types/hex";
 import type { VisualizationRequest, VisualizationStats } from "@/types/visualization";
 import type { Seymour } from "@/types/seymour";
 import type { Stats, RankingUser } from "@/types/stats";
@@ -180,6 +180,10 @@ export function fetchRankings(sortBy?: keyof Stats) {
 
 export function fetchHexInfo(hexCode: string, includeDyes = false) {
   return request<HexInfo>(`/hex/${hexCode}${toQuery({ include_dyes: includeDyes || undefined })}`);
+}
+
+export function fetchHexOwners(hexCode: string, limit: number, offset: number) {
+  return request<HexOwnersPage>(`/hex/${hexCode}/owners${toQuery({ limit, offset })}`);
 }
 
 export function fetchOrders(params: FetchOrdersParams = {}) {

@@ -16,7 +16,7 @@ export function HomeContent({ stats }: HomeContentProps) {
         SeymourSearcher
       </h1>
       <div className="mb-6">
-        <HexSearchInput showError={false} />
+        <HexSearchInput />
       </div>
 
       <div className={stats ? "" : "invisible"}>

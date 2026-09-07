@@ -4,21 +4,23 @@ import { useState } from "react";
 import { useParams } from "next/navigation";
 import { fetchHexInfo } from "@/lib/api";
 import type { HexInfo } from "@/types/hex";
+import { isValidHex } from "@/lib/hex";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { StatusMessage } from "@/components/ui/StatusMessage";
-import { HexSearchInput } from "@/components/HexSearchInput";
-import { ClosestMatchSidebar } from "@/components/hex/ClosestMatchSidebar";
-import { MatchCard } from "@/components/hex/MatchCard";
+import { HexHero } from "@/components/hex/HexHero";
+import { OwnersNearby } from "@/components/hex/OwnersNearby";
+import { CatalogMatchRow } from "@/components/hex/CatalogMatchRow";
 
 export default function HexPage() {
   const params = useParams();
   const hexcode = (params.hexcode as string)?.toUpperCase() || "";
-  
+  const valid = isValidHex(hexcode);
+
   const [includeDyes, setIncludeDyes] = useState(false);
 
   const { state } = useAsyncData<HexInfo>(
     () =>
-      /^[0-9A-F]{6}$/.test(hexcode)
+      valid
         ? fetchHexInfo(hexcode, includeDyes)
         : Promise.resolve({ ok: false, status: 400, detail: "Invalid hex code" }),
     [hexcode, includeDyes]
@@ -26,17 +28,8 @@ export default function HexPage() {
 
   return (
     <main className="min-h-screen bg-[#121212] px-4 py-6 sm:p-6 font-['MinecraftSeven',Arial,sans-serif]">
-      <h1 className="text-[1.25em] sm:text-[1.5em] text-[#f0f0f0] mb-4 text-center">Hex Search</h1>
-      
-      <div className="mb-6">
-        <HexSearchInput
-          initialValue={hexcode}
-          showPreview
-          colorizeInput
-          placeholder="FFFF00"
-          inputClassName="bg-[#222] border border-[#444] rounded px-3 py-2 text-[14px] w-[120px] uppercase font-bold"
-          buttonClassName="bg-[#5865F2] text-white px-4 py-2 rounded text-[12px] border-none cursor-pointer hover:bg-[#4752C4] transition-colors"
-        >
+      <div className="max-w-[900px] mx-auto">
+        <HexHero hexcode={valid ? hexcode : "333333"}>
           <label className="flex items-center gap-2 text-[12px] text-[#888] cursor-pointer">
             <input
               type="checkbox"
@@ -46,38 +39,26 @@ export default function HexPage() {
             />
             Include Dyes
           </label>
-        </HexSearchInput>
-      </div>
+        </HexHero>
 
-      {state.status === "loading" ? (
-        <StatusMessage>Loading...</StatusMessage>
-      ) : state.status === "error" ? (
-        <StatusMessage tone="error">{state.detail}</StatusMessage>
-      ) : state.data.top_matches.length > 0 ? (
-        <div className="max-w-[1100px] mx-auto">
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-6">
-            <div className="w-full lg:w-[280px] lg:shrink-0">
-              <ClosestMatchSidebar
-                match={state.data.top_matches[0]}
-                searchHex={state.data.hex_code}
-              />
-            </div>
+        {/* Keyed so navigating to another hex drops the page offset with it. */}
+        {valid && <OwnersNearby key={hexcode} hexcode={hexcode} />}
 
-            <div className="flex-1 min-w-0">
-              <h2 className="text-[#888] text-[12px] mb-4">
-                Top 3 Closest Matches
-              </h2>
-              <div className="space-y-4">
-                {state.data.top_matches.map((match, idx) => (
-                  <MatchCard key={match.target_hex} match={match} rank={idx + 1} />
-                ))}
-              </div>
-            </div>
+        <h2 className="text-[#888] text-[12px] mb-3">Closest catalog items</h2>
+        {state.status === "loading" ? (
+          <StatusMessage>Loading...</StatusMessage>
+        ) : state.status === "error" ? (
+          <StatusMessage tone="error">{state.detail}</StatusMessage>
+        ) : state.data.top_matches.length > 0 ? (
+          <div className="space-y-2">
+            {state.data.top_matches.map((match, idx) => (
+              <CatalogMatchRow key={match.target_hex} match={match} rank={idx + 1} />
+            ))}
           </div>
-        </div>
-      ) : (
-        <StatusMessage>No matches found</StatusMessage>
-      )}
+        ) : (
+          <StatusMessage>No matches found</StatusMessage>
+        )}
+      </div>
     </main>
   );
 }

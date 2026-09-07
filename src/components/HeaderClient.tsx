@@ -2,8 +2,10 @@
 
 import { useRef, useState, lazy, Suspense } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { uploadSeymours } from "@/lib/api";
+import { HexSearchInput } from "./HexSearchInput";
 import DiscordIcon from "./icons/DiscordIcon";
 
 const LoginPromptModal = lazy(() =>
@@ -19,11 +21,30 @@ const NAV_LINKS = [
   { href: "/faq", label: "FAQ", external: false },
 ];
 
+const HEADER_SEARCH_INPUT_CLASS =
+  "w-[110px] border border-[#333] bg-[#222] text-[#eee] text-[12px] px-2 py-1 rounded uppercase font-['MinecraftSeven',Arial,sans-serif] outline-none";
+const HEADER_SEARCH_BUTTON_CLASS =
+  "text-[#ccc] bg-[#333] border-none cursor-pointer text-[12px] px-2 py-1 rounded font-['MinecraftSeven',Arial,sans-serif]";
+
+function HeaderSearch({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <HexSearchInput
+      showHint={false}
+      placeholder="hex"
+      inputClassName={HEADER_SEARCH_INPUT_CLASS}
+      buttonClassName={HEADER_SEARCH_BUTTON_CLASS}
+      onNavigate={onNavigate}
+    />
+  );
+}
+
 export function HeaderClient() {
   const { user, loading, login, logout } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  // The homepage hero already owns a search box; two on screen reads as a bug.
+  const showSearch = usePathname() !== "/";
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -73,6 +94,7 @@ export function HeaderClient() {
         </nav>
 
         <div className="flex items-center gap-4 max-[980px]:hidden">
+          {showSearch && <HeaderSearch />}
           <button
             onClick={() => user ? fileInputRef.current?.click() : setShowLoginPrompt(true)}
             className="text-[#ccc] no-underline text-[14px] p-[6px_10px] rounded-[6px] transition-[background] duration-300 hover:bg-[#333] bg-transparent border-none cursor-pointer font-['MinecraftSeven',Arial,sans-serif]"
@@ -120,6 +142,12 @@ export function HeaderClient() {
           menuOpen ? "translate-x-0 translate-y-[6%]" : "-translate-x-full"
         }`}
       >
+        {showSearch && (
+          <div className="mb-3">
+            <HeaderSearch onNavigate={() => setMenuOpen(false)} />
+          </div>
+        )}
+
         {NAV_LINKS.map((link) =>
           link.external ? (
             <a

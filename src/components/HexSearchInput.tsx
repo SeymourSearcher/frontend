@@ -2,52 +2,47 @@
 
 import { useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { cleanHexInput, isValidHex } from "@/lib/hex";
+import { HEX_LENGTH, isValidHex, sanitizeHexInput } from "@/lib/hex";
 
 interface HexSearchInputProps {
   initialValue?: string;
   showPreview?: boolean;
-  showError?: boolean;
+  showHint?: boolean;
   colorizeInput?: boolean;
   placeholder?: string;
   inputClassName?: string;
   buttonClassName?: string;
+  /** Fired only on a real navigation, so a container can dismiss itself. */
+  onNavigate?: () => void;
   children?: ReactNode;
 }
 
 export function HexSearchInput({
   initialValue = "",
   showPreview = false,
-  showError = true,
+  showHint = true,
   colorizeInput = false,
   placeholder = "hexcode...",
   inputClassName = "w-[280px] border border-[#666] bg-[#1a1a1a] text-[#eee] text-[14px] p-2 rounded-lg font-['MinecraftSeven',Arial,sans-serif] outline-none",
   buttonClassName = "bg-[#444] text-[#eee] border-none cursor-pointer text-[14px] p-2 rounded-lg font-['MinecraftSeven',Arial,sans-serif]",
+  onNavigate,
   children,
 }: HexSearchInputProps) {
-  const [input, setInput] = useState(initialValue);
-  const [error, setError] = useState("");
+  const [input, setInput] = useState(sanitizeHexInput(initialValue));
   const router = useRouter();
+
+  const isValid = isValidHex(input);
+  const remaining = HEX_LENGTH - input.length;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const cleaned = cleanHexInput(input);
-    
-    if (!cleaned) return;
-    
-    if (showError && !isValidHex(cleaned)) {
-      setError("Invalid hex code");
-      return;
-    }
-    
-    setError("");
-    router.push(`/hex/${cleaned}`);
+    if (!isValid) return;
+    router.push(`/hex/${input}`);
+    onNavigate?.();
   }
 
-  const cleaned = cleanHexInput(input);
-  const isValid = isValidHex(cleaned);
-  const previewColor = showPreview && isValid ? `#${cleaned}` : "#333";
-  const inputColor = colorizeInput && isValid ? `#${cleaned}` : undefined;
+  const previewColor = showPreview && isValid ? `#${input}` : "#333";
+  const inputColor = colorizeInput && isValid ? `#${input}` : undefined;
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col items-center gap-2">
@@ -61,18 +56,26 @@ export function HexSearchInput({
         <input
           type="text"
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => setInput(sanitizeHexInput(e.target.value))}
           placeholder={placeholder}
-          maxLength={showPreview ? 7 : undefined}
+          maxLength={HEX_LENGTH}
           className={inputClassName}
           style={inputColor ? { color: inputColor } : undefined}
         />
-        <button type="submit" className={buttonClassName}>
+        <button
+          type="submit"
+          disabled={!isValid}
+          className={`${buttonClassName} disabled:opacity-40 disabled:cursor-not-allowed`}
+        >
           Search
         </button>
         {children}
       </div>
-      {showError && error && <span className="text-red-400 text-[11px]">{error}</span>}
+      {showHint && input.length > 0 && !isValid && (
+        <span className="text-[#888] text-[11px]">
+          {remaining} more character{remaining === 1 ? "" : "s"}
+        </span>
+      )}
     </form>
   );
 }

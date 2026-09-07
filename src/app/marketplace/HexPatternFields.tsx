@@ -1,5 +1,6 @@
 import { HexMatchType } from "@/types/marketplace";
 import { PieceIndex } from "@/lib/pieces";
+import { HEX_LENGTH, isValidHex, sanitizeHexInput } from "@/lib/hex";
 import { ToggleButton } from "./ToggleButton";
 import { HexPieceSelector } from "./HexPieceSelector";
 import { INPUT_CLASS, LABEL_CLASS } from "./formStyles";
@@ -55,13 +56,13 @@ export function HexPatternFields({
           <input
             type="text"
             value={hexValue}
-            onChange={(e) => onHexValueChange(e.target.value.replace("#", "").slice(0, 6))}
+            onChange={(e) => onHexValueChange(sanitizeHexInput(e.target.value))}
             placeholder="FFFFFF"
             className={`flex-1 ${INPUT_CLASS} uppercase`}
-            maxLength={6}
+            maxLength={HEX_LENGTH}
             required
           />
-          {hexValue.length === 6 && (
+          {isValidHex(hexValue) && (
             <span
               className="w-8 h-8 rounded border border-[#444]"
               style={{ backgroundColor: `#${hexValue}` }}
