@@ -27,7 +27,7 @@ import type {
   HexStatsTier,
 } from "@/types/hex";
 import type { VisualizationRequest, VisualizationStats } from "@/types/visualization";
-import type { Seymour } from "@/types/seymour";
+import type { Seymour, SeymourRemoval } from "@/types/seymour";
 import type { Stats, RankingUser } from "@/types/stats";
 import type { PieceIndex } from "@/lib/pieces";
 import { env } from "@/lib/env";
@@ -137,6 +137,11 @@ export function uploadSeymours(file: File) {
     method: "POST",
     body: formData,
   });
+}
+
+/** Clears the uploaded collection. The account itself survives — see RemovalResponse. */
+export function deleteAllSeymours() {
+  return request<SeymourRemoval>("/seymours/", { method: "DELETE" });
 }
 
 export function fetchGlobalStats() {

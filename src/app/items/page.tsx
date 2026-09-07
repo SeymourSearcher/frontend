@@ -14,6 +14,7 @@ import MultiSelectDropdown from "./MultiSelectDropdown";
 import SellActionBar from "./SellActionBar";
 import VisualizeModal from "./VisualizeModal";
 import LoggedOutPreview from "./LoggedOutPreview";
+import { RemoveMyData } from "./RemoveMyData";
 import { PieceIndex } from "@/lib/pieces";
 
 export default function ItemsPage() {
@@ -47,6 +48,7 @@ export default function ItemsPage() {
     canIncludeDyes,
     sortDirection,
     toggleSort,
+    reload,
   } = useSeymours(isAuthed);
 
   const {
@@ -257,6 +259,13 @@ export default function ItemsPage() {
           isSubmitting={isSubmitting}
           error={error}
         />
+      )}
+
+      {/* Below the collection, so what is about to go is on screen. It hides
+          itself when there is nothing to remove -- gating on the count here
+          would unmount the result the moment the refetch reported zero. */}
+      {!sellMode && stats && (
+        <RemoveMyData total={stats.total_seymours} onRemoved={reload} />
       )}
 
       <VisualizeModal isOpen={showVisualizeModal} onClose={() => setShowVisualizeModal(false)} userHexes={userHexes} userSeymours={userSeymours} />

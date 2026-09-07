@@ -14,5 +14,11 @@ export type Seymour = {
   match?: MatchInfo | null;
 };
 
-export type FilterType = "all" | "stars" | "t1" | "t2" | "t3" | "words" | "dupes" | "sets" | "dyes" | "custom";
+/** What clearing a collection took with it. The sell orders go by FK cascade. */
+export type SeymourRemoval = {
+  removed: number;
+  sell_orders_cancelled: number;
+};
+
+export type FilterType ="all" | "stars" | "t1" | "t2" | "t3" | "words" | "dupes" | "sets" | "dyes" | "custom";
 

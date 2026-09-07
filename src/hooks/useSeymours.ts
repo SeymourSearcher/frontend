@@ -35,6 +35,9 @@ export function useSeymours(enabled = true) {
   const [incompleteOnly, setIncompleteOnly] = useState(false);
   const [includeDyes, setIncludeDyes] = useState(false);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(null);
+  // Bumped to re-run the two user-scoped fetches after something changes the
+  // collection out from under them; no filter state moves, so nothing else would.
+  const [version, setVersion] = useState(0);
 
   const currentFilterConfig = FILTERS.find(f => f.key === filter);
   const hasSubFilter = currentFilterConfig?.hasSubFilter ?? false;
@@ -68,7 +71,7 @@ export function useSeymours(enabled = true) {
     fetchUserStats().then((result) => {
       if (result.ok) setStats(result.data);
     });
-  }, [enabled]);
+  }, [enabled, version]);
 
   useEffect(() => {
     if (hasSubFilter) {
@@ -88,7 +91,7 @@ export function useSeymours(enabled = true) {
     () => fetchUserSeymours(
       filter, subFilterParam, 0, 500, incompleteOnly, includeDyes, sortDirection || undefined
     ),
-    [filter, subFilterParam, incompleteOnly, includeDyes, sortDirection],
+    [filter, subFilterParam, incompleteOnly, includeDyes, sortDirection, version],
     enabled
   );
 
@@ -177,5 +180,6 @@ export function useSeymours(enabled = true) {
     canIncludeDyes,
     sortDirection,
     toggleSort,
+    reload: () => setVersion((v) => v + 1),
   };
 }
