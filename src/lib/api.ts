@@ -18,7 +18,7 @@ import type {
   AuctionStats,
   RecentBid,
 } from "@/types/auction";
-import type { HexInfo, HexOwnersPage } from "@/types/hex";
+import type { HexAuctionStats, HexInfo, HexOwnersPage } from "@/types/hex";
 import type { VisualizationRequest, VisualizationStats } from "@/types/visualization";
 import type { Seymour } from "@/types/seymour";
 import type { Stats, RankingUser } from "@/types/stats";
@@ -184,6 +184,18 @@ export function fetchHexInfo(hexCode: string, includeDyes = false, pieces?: Piec
     pieces: pieces?.length ? pieces.join(",") : undefined,
   });
   return request<HexInfo>(`/hex/${hexCode}${query}`);
+}
+
+export function fetchHexAuctionStats(
+  hexCode: string,
+  includeDyes = false,
+  pieces?: PieceIndex[]
+) {
+  const query = toQuery({
+    include_dyes: includeDyes || undefined,
+    pieces: pieces?.length ? pieces.join(",") : undefined,
+  });
+  return request<HexAuctionStats>(`/hex/${hexCode}/auction-stats${query}`);
 }
 
 export function fetchHexOwners(

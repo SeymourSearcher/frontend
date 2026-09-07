@@ -1,4 +1,5 @@
-# syntax=docker/dockerfile:1
+# No `# syntax=` directive on purpose: it makes every build fetch docker/dockerfile
+# from Docker Hub, which the nightly image prune evicts. Nothing here needs it.
 
 # Base stage - shared Alpine base
 FROM node:22-alpine AS base
@@ -69,5 +70,10 @@ EXPOSE 3000
 
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+
+# Keeps traefik from routing to a task that is still booting -- see the backend
+# Dockerfile for why. wget is busybox's, present in alpine.
+HEALTHCHECK --interval=10s --timeout=3s --start-period=20s --retries=3 \
+  CMD wget -qO- http://localhost:3000/ >/dev/null || exit 1
 
 CMD ["node", "server.js"]

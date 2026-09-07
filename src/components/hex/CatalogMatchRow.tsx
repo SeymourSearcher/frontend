@@ -7,7 +7,7 @@ import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 import { ColorSwatch } from "@/components/ui/ColorSwatch";
 import { formatPrice } from "@/lib/format";
 import { TierBadge } from "./TierBadge";
-import { TierSection } from "./TierSection";
+import { TierGrid } from "./TierGrid";
 
 /** Shared with the loading skeleton so the strip does not resize on load. */
 export const CATALOG_ROW_HEIGHT = "h-[52px]";
@@ -67,9 +67,7 @@ export function CatalogMatchRow({ match, rank }: { match: HexMatch; rank: number
 
       {expanded && (
         <div className="px-3 pb-3">
-          <TierSection tier="t1" users={tiers.t1} />
-          <TierSection tier="t2" users={tiers.t2} />
-          <TierSection tier="t3" users={tiers.t3} />
+          <TierGrid tiers={tiers} />
         </div>
       )}
     </div>

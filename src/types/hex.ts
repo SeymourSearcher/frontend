@@ -1,4 +1,5 @@
 import type { PieceIndex } from "@/lib/pieces";
+import type { AuctionStats } from "@/types/auction";
 
 /** A user's best holding near one catalog colour. */
 export interface HexUser {
@@ -49,4 +50,11 @@ export interface HexOwnersPage {
   total: number;
   max_delta_e: number;
   items: HexOwnerMatch[];
+}
+
+/** Sale statistics for the colour a search resolves to; tier is null past ΔE 10. */
+export interface HexAuctionStats extends AuctionStats {
+  target_name: string | null;
+  target_hex: string | null;
+  tier: string | null;
 }

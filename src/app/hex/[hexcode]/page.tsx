@@ -11,6 +11,7 @@ import { HexHero } from "@/components/hex/HexHero";
 import { OwnersNearby } from "@/components/hex/OwnersNearby";
 import { CATALOG_ROW_HEIGHT, CatalogMatchRow } from "@/components/hex/CatalogMatchRow";
 import { PieceFilter } from "@/components/hex/PieceFilter";
+import { HexAuctionStats } from "@/components/hex/HexAuctionStats";
 import type { PieceIndex } from "@/lib/pieces";
 
 const CATALOG_COUNT = 3;
@@ -87,6 +88,14 @@ export default function HexPage() {
             <StatusMessage>No matches found</StatusMessage>
           )}
         </div>
+
+        {valid && (
+          <HexAuctionStats
+            hexcode={hexcode}
+            includeDyes={includeDyes}
+            pieces={pieces}
+          />
+        )}
       </div>
     </main>
   );

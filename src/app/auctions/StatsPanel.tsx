@@ -1,9 +1,9 @@
 "use client";
 
 import type { AuctionStats } from "@/types/auction";
-import PriceDistributionChart from "./PriceDistributionChart";
+import PriceDistributionChart from "@/components/auctions/PriceDistributionChart";
 import PeakTimesChart from "./PeakTimesChart";
-import StatsSummary from "./StatsSummary";
+import StatsSummary from "@/components/auctions/StatsSummary";
 
 interface StatsPanelProps {
   stats: AuctionStats | null;

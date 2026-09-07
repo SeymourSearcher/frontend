@@ -9,21 +9,23 @@ import { StatusMessage } from "@/components/ui/StatusMessage";
 import { MinecraftItem } from "@/components/ui/MinecraftItem";
 import { Avatar } from "@/components/Avatar";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 10;
 
-// The grid is five fixed slots and the pager is always present, so loading, a
-// short last page and an empty result all leave the page unmoved.
-const GRID_CLASS = "grid grid-cols-5 gap-2 min-h-[136px]";
-const TILE_CLASS = "flex flex-col items-center gap-1 py-2";
-const PAGER_CLASS = "flex items-center justify-end gap-2 h-10";
+// Five fixed columns in a capped-width grid rather than stretching across the
+// page: at full width the tiles drifted a swatch's worth apart. Two rows of
+// five, plus an always-present pager, keep the block a constant height.
+const GRID_CLASS = "grid grid-cols-5 gap-2 w-full max-w-[560px] min-h-[184px]";
+const TILE_CLASS = "flex flex-col items-center gap-1 py-1";
+const PAGER_CLASS = "flex items-center justify-end gap-2 h-10 max-w-[560px]";
 
 function OwnerTile({ match }: { match: HexOwnerMatch }) {
   return (
-    <li className={TILE_CLASS}>
+    <li className={TILE_CLASS} title={`${PIECE_SLOT_NAMES[match.piece]} · #${match.hex_color}`}>
       <MinecraftItem piece={match.piece} hex={match.hex_color} scale={3} />
-      <Avatar user={match} size="sm" alt="" />
-      <span className="text-[11px] text-[#ccc] truncate max-w-full">{match.username}</span>
-      <span className="text-[10px] text-[#666]">{PIECE_SLOT_NAMES[match.piece]}</span>
+      <span className="flex items-center gap-1 max-w-full">
+        <Avatar user={match} size="sm" alt="" />
+        <span className="text-[11px] text-[#ccc] truncate">{match.username}</span>
+      </span>
       <span className="text-[10px] text-[#aaa]">
         ΔE {match.delta_e}
         {match.quantity > 1 && <span className="text-[#666]"> ×{match.quantity}</span>}
