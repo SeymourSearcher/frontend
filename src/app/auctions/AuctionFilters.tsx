@@ -102,10 +102,12 @@ export default function AuctionFilters({
 
         <Divider />
 
+        {/* Fixed width, not max-w: availableSets arrives after mount, and an
+            intrinsically-sized select grows on arrival and re-wraps this row. */}
         <select
           value={setName}
           onChange={(e) => onSetNameChange(e.target.value)}
-          className="bg-[#2a2a2a] text-[#ccc] text-[11px] px-2 py-1.5 rounded border border-[#444] cursor-pointer max-w-[140px]"
+          className="bg-[#2a2a2a] text-[#ccc] text-[11px] px-2 py-1.5 rounded border border-[#444] cursor-pointer w-[140px]"
         >
           <option value="">All Sets</option>
           {availableSets.map((s) => (

@@ -6,11 +6,6 @@ const connectSrc = ["'self'", API_URL].filter(Boolean).join(" ");
 
 const nextConfig: NextConfig = {
   output: 'standalone',
-  experimental: {
-    optimizeCss: {
-      inlineFonts: true,
-    },
-  },
   async headers() {
     const securityHeaders = [
       {
