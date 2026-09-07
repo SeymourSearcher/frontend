@@ -8,6 +8,7 @@ import { useAsyncData } from "@/hooks/useAsyncData";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import StatsSummary from "@/components/auctions/StatsSummary";
 import PriceDistributionChart from "@/components/auctions/PriceDistributionChart";
+import { RecentSales } from "./RecentSales";
 import { TIER_CONFIG, TIER_KEYS, type TierKey } from "./tierConfig";
 
 const CHIP =
@@ -113,6 +114,13 @@ export function HexAuctionStats({ hexcode, includeDyes, pieces }: HexAuctionStat
         <div className="flex flex-col gap-4">
           <StatsSummary stats={state.data} />
           <PriceDistributionChart buckets={state.data.price_distribution} />
+          {/* Same tier selection, so these are the rows the figures above describe. */}
+          <RecentSales
+            hexcode={hexcode}
+            includeDyes={includeDyes}
+            pieces={pieces}
+            tier={tier}
+          />
         </div>
       )}
     </section>

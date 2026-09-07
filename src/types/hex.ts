@@ -1,5 +1,5 @@
 import type { PieceIndex } from "@/lib/pieces";
-import type { AuctionStats } from "@/types/auction";
+import type { AuctionStats, EndedAuction } from "@/types/auction";
 
 /** A user's best holding near one catalog colour. */
 export interface HexUser {
@@ -57,11 +57,25 @@ export interface HexOwnersPage {
 /** "all" prices every band; otherwise the searched colour's own band is the default. */
 export type HexStatsTier = "t1" | "t2" | "t3" | "all";
 
-export interface HexAuctionStats extends AuctionStats {
+/** Which colour and band a hex search resolved to. */
+export interface HexReference {
   target_name: string | null;
   target_hex: string | null;
   /** The band the searched colour earns — null past ΔE 10. */
   search_tier: string | null;
-  /** The band actually priced — null when every tier was asked for. */
+  /** The band actually applied — null when every tier was asked for. */
   tier: string | null;
+}
+
+export interface HexAuctionStats extends AuctionStats, HexReference {}
+
+export interface HexSale extends EndedAuction {
+  /** Distance from the searched hex to this auction's colour — not its delta_e. */
+  search_delta_e: number;
+}
+
+/** The sales HexAuctionStats aggregates, newest first. */
+export interface HexSalesPage extends HexReference {
+  total: number;
+  items: HexSale[];
 }

@@ -13,12 +13,19 @@ import type {
 } from "@/types/marketplace";
 import type {
   ActiveAuctionListResponse,
+  EndedAuction,
   EndedAuctionListResponse,
   AuctionFilters,
   AuctionStats,
   RecentBid,
 } from "@/types/auction";
-import type { HexAuctionStats, HexInfo, HexOwnersPage, HexStatsTier } from "@/types/hex";
+import type {
+  HexAuctionStats,
+  HexInfo,
+  HexOwnersPage,
+  HexSalesPage,
+  HexStatsTier,
+} from "@/types/hex";
 import type { VisualizationRequest, VisualizationStats } from "@/types/visualization";
 import type { Seymour } from "@/types/seymour";
 import type { Stats, RankingUser } from "@/types/stats";
@@ -214,6 +221,22 @@ export function fetchHexOwners(
   return request<HexOwnersPage>(`/hex/${hexCode}/owners${query}`);
 }
 
+export function fetchHexSales(
+  hexCode: string,
+  includeDyes = false,
+  pieces?: PieceIndex[],
+  tier?: HexStatsTier,
+  limit = 8
+) {
+  const query = toQuery({
+    include_dyes: includeDyes || undefined,
+    pieces: pieces?.length ? pieces.join(",") : undefined,
+    tier,
+    limit,
+  });
+  return request<HexSalesPage>(`/hex/${hexCode}/sales${query}`);
+}
+
 export function fetchOrders(params: FetchOrdersParams = {}) {
   const query = toQuery({
     skip: params.skip,
@@ -335,6 +358,10 @@ export function fetchAuctionSets() {
 
 export function fetchAuctionStats(params: AuctionFilters = {}) {
   return request<AuctionStats>(`/auctions/stats${auctionQuery(params)}`);
+}
+
+export function fetchTopSales(hours = 24, limit = 20) {
+  return request<EndedAuction[]>(`/auctions/top-sales${toQuery({ hours, limit })}`);
 }
 
 export function fetchVisualizationStats(data: VisualizationRequest) {
