@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { deleteAllSeymours, fetchMySellOrders } from "@/lib/api";
 import type { SeymourRemoval } from "@/types/seymour";
+import { OrderStatus } from "@/types/marketplace";
 
 type Phase = "idle" | "confirming" | "working" | "done";
 
@@ -30,7 +31,7 @@ export function RemoveMyData({ total, onRemoved }: { total: number; onRemoved: (
     setPhase("confirming");
     setError(null);
     // Only the count is wanted, so ask for the smallest page that carries one.
-    const orders = await fetchMySellOrders({ status: "active", limit: 1 });
+    const orders = await fetchMySellOrders({ status: OrderStatus.ACTIVE, limit: 1 });
     setListings(orders.ok ? orders.data.total : null);
   }
 
