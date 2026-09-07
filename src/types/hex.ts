@@ -52,9 +52,14 @@ export interface HexOwnersPage {
   items: HexOwnerMatch[];
 }
 
-/** Sale statistics for the colour a search resolves to; tier is null past ΔE 10. */
+/** "all" prices every band; otherwise the searched colour's own band is the default. */
+export type HexStatsTier = "t1" | "t2" | "t3" | "all";
+
 export interface HexAuctionStats extends AuctionStats {
   target_name: string | null;
   target_hex: string | null;
+  /** The band the searched colour earns — null past ΔE 10. */
+  search_tier: string | null;
+  /** The band actually priced — null when every tier was asked for. */
   tier: string | null;
 }
