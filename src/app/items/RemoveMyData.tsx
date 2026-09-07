@@ -8,7 +8,7 @@ type Phase = "idle" | "confirming" | "working" | "done";
 
 const PANEL = "max-w-[600px] mx-auto mt-10 border-t border-[#333] pt-5 text-center";
 const BUTTON =
-  "px-3 py-1 rounded text-[12px] border-none cursor-pointer font-['MinecraftSeven',Arial,sans-serif] disabled:opacity-50 disabled:cursor-not-allowed";
+  "px-3 py-1 rounded text-[12px] cursor-pointer font-['MinecraftSeven',Arial,sans-serif] disabled:opacity-50 disabled:cursor-not-allowed";
 
 function plural(count: number, noun: string) {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
@@ -74,7 +74,7 @@ export function RemoveMyData({ total, onRemoved }: { total: number; onRemoved: (
       <div className={PANEL}>
         <button
           onClick={openConfirmation}
-          className={`${BUTTON} bg-transparent text-[#666] hover:text-[#f87171]`}
+          className={`${BUTTON} px-5 py-2 text-[13px] bg-transparent border border-[#f87171] text-[#f87171] hover:bg-[#f87171] hover:text-[#121212]`}
         >
           Remove my data
         </button>

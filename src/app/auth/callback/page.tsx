@@ -1,20 +1,31 @@
 "use client";
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { exchangeCode, setToken } from "@/lib/api";
+import { consumeOAuthState } from "@/lib/auth";
 
 function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { refresh } = useAuth();
+  // The state check is single-use, so StrictMode's second pass would fail it.
+  const handled = useRef(false);
 
   useEffect(() => {
+    if (handled.current) return;
+    handled.current = true;
+
     const code = searchParams.get("code");
     if (!code) {
       router.push("/");
+      return;
+    }
+
+    if (!consumeOAuthState(searchParams.get("state"))) {
+      router.push("/?error=auth_failed");
       return;
     }
 

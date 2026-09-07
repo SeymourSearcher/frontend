@@ -89,7 +89,7 @@ export function useSeymours(enabled = true) {
 
   const { state } = useAsyncData(
     () => fetchUserSeymours(
-      filter, subFilterParam, 0, 500, incompleteOnly, includeDyes, sortDirection || undefined
+      filter, subFilterParam, 0, 210, incompleteOnly, includeDyes, sortDirection || undefined
     ),
     [filter, subFilterParam, incompleteOnly, includeDyes, sortDirection, version],
     enabled
