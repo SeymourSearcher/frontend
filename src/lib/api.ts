@@ -26,6 +26,7 @@ import type {
   HexSalesPage,
   HexStatsTier,
 } from "@/types/hex";
+import type { HexSearchPage, HexSearchParams } from "@/types/hexSearch";
 import type { VisualizationRequest, VisualizationStats } from "@/types/visualization";
 import type {
   CollectionValue,
@@ -259,6 +260,19 @@ export function fetchHexSales(
     offset,
   });
   return request<HexSalesPage>(`/hex/${hexCode}/sales${query}`);
+}
+
+export function fetchHexSearch(pattern: string, params: HexSearchParams = {}) {
+  const query = toQuery({
+    p: pattern,
+    include_dyes: params.includeDyes || undefined,
+    owned_only: params.ownedOnly || undefined,
+    tier: params.tier,
+    pieces: params.pieces?.length ? params.pieces.join(",") : undefined,
+    limit: params.limit,
+    offset: params.offset || undefined,
+  });
+  return request<HexSearchPage>(`/hex-search${query}`);
 }
 
 export function fetchOrders(params: FetchOrdersParams = {}) {

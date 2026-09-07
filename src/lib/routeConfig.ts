@@ -11,4 +11,6 @@ export const indexableRoutes: Array<{
   { path: "/faq", changeFrequency: "monthly", priority: 0.7 },
 ];
 
-export const disallowPaths = ["/auth/", "/api/", "/items"];
+// /search is unbounded (~2.8e9 patterns) and nothing caches it, so a crawler
+// walking it is the HEX_LIMIT problem without the per-IP limiter to hold it.
+export const disallowPaths = ["/auth/", "/api/", "/items", "/search"];

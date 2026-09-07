@@ -2,7 +2,13 @@
 
 import { useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { HEX_LENGTH, isValidHex, sanitizeHexInput } from "@/lib/hex";
+import {
+  HEX_LENGTH,
+  hasWildcard,
+  isHexPrefix,
+  isValidPattern,
+  sanitizePatternInput,
+} from "@/lib/hex";
 
 interface HexSearchInputProps {
   initialValue?: string;
@@ -22,28 +28,32 @@ export function HexSearchInput({
   showPreview = false,
   showHint = true,
   colorizeInput = false,
-  placeholder = "hexcode...",
+  placeholder = "hexcode or pattern...",
   inputClassName = "w-[280px] border border-[#666] bg-[#1a1a1a] text-[#eee] text-[14px] p-2 rounded-lg font-['MinecraftSeven',Arial,sans-serif] outline-none",
   buttonClassName = "bg-[#444] text-[#eee] border-none cursor-pointer text-[14px] p-2 rounded-lg font-['MinecraftSeven',Arial,sans-serif]",
   onNavigate,
   children,
 }: HexSearchInputProps) {
-  const [input, setInput] = useState(sanitizeHexInput(initialValue));
+  const [input, setInput] = useState(sanitizePatternInput(initialValue));
   const router = useRouter();
 
-  const isValid = isValidHex(input);
+  const isValid = isValidPattern(input);
   const remaining = HEX_LENGTH - input.length;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!isValid) return;
-    router.push(`/hex/${input}`);
+    router.push(
+      hasWildcard(input) ? `/search?p=${encodeURIComponent(input)}` : `/hex/${input}`
+    );
     onNavigate?.();
   }
 
   // Padding the partial code lets the colour drift toward the real one while
-  // typing and land on it exactly at six characters.
-  const partialColor = input.length > 0 ? `#${input.padEnd(HEX_LENGTH, "0")}` : null;
+  // typing and land on it exactly at six characters. A pattern has no colour to
+  // drift toward, and `#X2XYZZ` would silently fall back mid-word.
+  const partialColor =
+    input.length > 0 && isHexPrefix(input) ? `#${input.padEnd(HEX_LENGTH, "0")}` : null;
   const previewColor = showPreview ? partialColor ?? "#333" : "#333";
   const inputColor = colorizeInput ? partialColor ?? undefined : undefined;
 
@@ -59,7 +69,7 @@ export function HexSearchInput({
         <input
           type="text"
           value={input}
-          onChange={(e) => setInput(sanitizeHexInput(e.target.value))}
+          onChange={(e) => setInput(sanitizePatternInput(e.target.value))}
           placeholder={placeholder}
           maxLength={HEX_LENGTH}
           className={inputClassName}
