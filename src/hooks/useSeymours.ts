@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { fetchUserSeymours, fetchUserStats, fetchAvailableFilters } from "@/lib/api";
+import { fetchUserSeymours, fetchUserStats, fetchSubFilters } from "@/lib/api";
 import { useAsyncData } from "@/hooks/useAsyncData";
-import { Seymour, FilterType } from "@/types/seymour";
+import { Seymour, FilterType, SubFilterOption } from "@/types/seymour";
 import { Stats } from "@/types/stats";
 
 // Stable identity, so the memos below don't recompute on every non-success render.
@@ -31,7 +31,7 @@ export function useSeymours(enabled = true) {
   const [filter, setFilter] = useState<FilterType>("all");
   const [selectedSubFilters, setSelectedSubFilters] = useState<string[]>([]);
   const [allSelected, setAllSelected] = useState(true);
-  const [availableSubFilters, setAvailableSubFilters] = useState<string[]>([]);
+  const [availableSubFilters, setAvailableSubFilters] = useState<SubFilterOption[]>([]);
   const [incompleteOnly, setIncompleteOnly] = useState(false);
   const [includeDyes, setIncludeDyes] = useState(false);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(null);
@@ -75,10 +75,11 @@ export function useSeymours(enabled = true) {
 
   useEffect(() => {
     if (hasSubFilter) {
-      fetchAvailableFilters(filter, incompleteOnly, includeDyes).then((result) => {
+      fetchSubFilters(filter, incompleteOnly, includeDyes).then((result) => {
         const newFilters = result.ok ? result.data : [];
         setAvailableSubFilters(newFilters);
-        setSelectedSubFilters(prev => prev.filter(v => newFilters.includes(v)));
+        const names = new Set(newFilters.map(o => o.name));
+        setSelectedSubFilters(prev => prev.filter(v => names.has(v)));
       });
     } else {
       setAvailableSubFilters([]);

@@ -27,7 +27,12 @@ import type {
   HexStatsTier,
 } from "@/types/hex";
 import type { VisualizationRequest, VisualizationStats } from "@/types/visualization";
-import type { Seymour, SeymourRemoval } from "@/types/seymour";
+import type {
+  CollectionValue,
+  Seymour,
+  SeymourRemoval,
+  SubFilterOption,
+} from "@/types/seymour";
 import type { Stats, RankingUser } from "@/types/stats";
 import type { PieceIndex } from "@/lib/pieces";
 import { env } from "@/lib/env";
@@ -152,6 +157,27 @@ export function fetchUserStats() {
   return request<Stats>("/stats/me");
 }
 
+/** Separate from fetchUserStats so the chips never wait on an auction aggregate. */
+export function fetchCollectionValue(includeDyes = false) {
+  return request<CollectionValue>(
+    `/stats/me/valuation${toQuery({ include_dyes: includeDyes || undefined })}`
+  );
+}
+
+/**
+ * The /items dropdown options — only what the user owns, with counts.
+ * Not /seymours/available-filters, which fetchAvailableSets still reads
+ * unrestricted so the marketplace can order a set you do not own.
+ */
+export function fetchSubFilters(filter: string, incompleteOnly = false, includeDyes = false) {
+  const query = toQuery({
+    filter,
+    incomplete_only: incompleteOnly || undefined,
+    include_dyes: includeDyes || undefined,
+  });
+  return request<SubFilterOption[]>(`/seymours/sub-filters${query}`);
+}
+
 export function fetchUserSeymours(
   filter?: string,
   subFilter?: string,
@@ -171,15 +197,6 @@ export function fetchUserSeymours(
     sort,
   });
   return request<Seymour[]>(`/seymours/${query}`);
-}
-
-export function fetchAvailableFilters(filter: string, incompleteOnly = false, includeDyes = false) {
-  const query = toQuery({
-    filter,
-    incomplete_only: incompleteOnly || undefined,
-    include_dyes: includeDyes || undefined,
-  });
-  return request<string[]>(`/seymours/available-filters${query}`);
 }
 
 export function fetchUserSeymourHexes() {

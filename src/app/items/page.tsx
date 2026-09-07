@@ -2,7 +2,10 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useSeymours } from "@/hooks/useSeymours";
+import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { useSellMode } from "@/hooks/useSellMode";
+import { formatPrice } from "@/lib/format";
+import type { CategoryValues, CollectionValue, FilterType } from "@/types/seymour";
 import { useAuth } from "@/contexts/AuthContext";
 import { fetchUserSeymourHexes } from "@/lib/api";
 import { StatusMessage } from "@/components/ui/StatusMessage";
@@ -10,12 +13,51 @@ import SeymourCard from "./SeymourCard";
 import SeymourChip from "./SeymourChip";
 import MissingBadge from "./MissingBadge";
 import MissingItem from "./MissingItem";
-import MultiSelectDropdown from "./MultiSelectDropdown";
+import { SearchableMultiSelect } from "@/components/ui/SearchableMultiSelect";
 import SellActionBar from "./SellActionBar";
 import VisualizeModal from "./VisualizeModal";
 import LoggedOutPreview from "./LoggedOutPreview";
 import { RemoveMyData } from "./RemoveMyData";
 import { PieceIndex } from "@/lib/pieces";
+
+/** Chips whose key is also a category in the valuation payload. Custom is absent
+ *  by design — see backend/app/services/collection_value.py. */
+function chipValue(key: FilterType, value: CollectionValue | null): string {
+  if (!value || key === "all" || key === "custom") return "";
+  const amount = value.categories[key as keyof CategoryValues];
+  return amount ? formatPrice(amount) : "";
+}
+
+function CollectionSummary({
+  total,
+  value,
+}: {
+  total: number;
+  value: CollectionValue | null;
+}) {
+  return (
+    <p
+      className="text-[#888] text-center mb-4 text-[12px] min-h-[18px]"
+      // Always present, not only when something is unpriced: the overlap is the
+      // part a reader would otherwise assume away by adding the chips up.
+      title="Estimated from median sale prices of each colour's nearest catalog match, at its own tier. Per-chip figures overlap — one item can be a Star and T1 and part of a set — so they do not sum to the total."
+    >
+      Total: {total}
+      {value && value.priced > 0 && (
+        <>
+          {" · est. "}
+          <span className="text-green-400">{formatPrice(value.total)}</span>
+          {value.unpriced > 0 && (
+            <span className="text-[#666]">
+              {" "}
+              from {value.priced} priced
+            </span>
+          )}
+        </>
+      )}
+    </p>
+  );
+}
 
 export default function ItemsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -50,6 +92,8 @@ export default function ItemsPage() {
     toggleSort,
     reload,
   } = useSeymours(isAuthed);
+
+  const collectionValue = useCollectionValue(isAuthed, includeDyes);
 
   const {
     sellMode,
@@ -98,7 +142,9 @@ export default function ItemsPage() {
     <main className={mainClasses}>
       <h1 className="text-[1.5em] text-[#f0f0f0] mb-4 text-center">My Seymours</h1>
 
-      {stats &&<p className="text-[#888] text-center mb-4 text-[12px]">Total: {stats.total_seymours}</p>}
+      {stats && (
+        <CollectionSummary total={stats.total_seymours} value={collectionValue} />
+      )}
 
       {successCount !== null && (
         <div className="max-w-[600px] mx-auto mb-4 bg-[#1a3a1a] border border-[#4ade80] rounded-lg p-3 flex items-center justify-between">
@@ -129,6 +175,10 @@ export default function ItemsPage() {
             {stats && f.key !== "all" && f.key !== "custom" && (
               <span className="ml-1 opacity-70">({getStatCount(f.key)})</span>
             )}
+            {/* Always rendered so the row does not jump when values arrive. */}
+            <span className="block text-[9px] leading-[11px] opacity-70 min-h-[11px]">
+              {chipValue(f.key, collectionValue)}
+            </span>
           </button>
         ))}
         <button
@@ -185,7 +235,7 @@ export default function ItemsPage() {
 
       {hasSubFilter && availableSubFilters.length > 0 && (
         <div className="flex justify-center mb-6">
-          <MultiSelectDropdown
+          <SearchableMultiSelect
             options={availableSubFilters}
             selected={selectedSubFilters}
             allSelected={allSelected}
