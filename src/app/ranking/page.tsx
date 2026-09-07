@@ -1,61 +1,33 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { fetchRankings } from "@/lib/api";
-import type { RankingUser } from "@/types/stats";
+import type { Stats } from "@/types/stats";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { Avatar } from "@/components/Avatar";
+import { RankBadge } from "@/components/RankBadge";
 
-type SortKey = "total" | "t1" | "t2" | "t3" | "words" | "dupes" | "sets" | "dyed";
+// Keyed by the API's stat field: the sort is done by the backend, which ranks
+// and caps the board, so these go over the wire as `sort_by`.
+type SortKey = keyof Stats;
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: "total", label: "Total" },
+  { key: "total_seymours", label: "Total" },
   { key: "t1", label: "T1" },
   { key: "t2", label: "T2" },
   { key: "t3", label: "T3" },
   { key: "words", label: "Words" },
   { key: "dupes", label: "Dupes" },
-  { key: "sets", label: "Sets" },
-  { key: "dyed", label: "Dyed" },
+  { key: "total_sets", label: "Sets" },
+  { key: "dyed_sets", label: "Dyed" },
 ];
 
-function getStatValue(user: RankingUser, key: SortKey): number {
-  const map: Record<SortKey, number> = {
-    total: user.total_seymours,
-    t1: user.t1,
-    t2: user.t2,
-    t3: user.t3,
-    words: user.words,
-    dupes: user.dupes,
-    sets: user.total_sets,
-    dyed: user.dyed_sets,
-  };
-  return map[key];
-}
-
-function RankBadge({ rank }: { rank: number }) {
-  const colors: Record<number, string> = {
-    1: "bg-yellow-500 text-black",
-    2: "bg-gray-400 text-black",
-    3: "bg-amber-700 text-white",
-  };
-  const baseClass = "w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold";
-  
-  if (rank <= 3) {
-    return <span className={`${baseClass} ${colors[rank]}`}>{rank}</span>;
-  }
-  return <span className={`${baseClass} bg-[#333] text-[#888]`}>{rank}</span>;
-}
-
 export default function RankingPage() {
-  const [sortBy, setSortBy] = useState<SortKey>("total");
-  const { state } = useAsyncData(fetchRankings, []);
+  const [sortBy, setSortBy] = useState<SortKey>("total_seymours");
+  const { state } = useAsyncData(() => fetchRankings(sortBy), [sortBy]);
 
-  const sortedRankings = useMemo(() => {
-    if (state.status !== "success") return [];
-    return [...state.data].sort((a, b) => getStatValue(b, sortBy) - getStatValue(a, sortBy));
-  }, [state, sortBy]);
+  const ranked = state.status === "success" ? state.data : [];
 
   return (
     <main className="min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif]">
@@ -79,7 +51,7 @@ export default function RankingPage() {
         <StatusMessage>Loading...</StatusMessage>
       ) : state.status === "error" ? (
         <StatusMessage tone="error">{state.detail}</StatusMessage>
-      ) : sortedRankings.length === 0 ? (
+      ) : ranked.length === 0 ? (
         <StatusMessage>No rankings available yet.</StatusMessage>
       ) : (
         <div className="max-w-[900px] mx-auto">
@@ -98,7 +70,7 @@ export default function RankingPage() {
           </div>
 
           <div className="space-y-2 md:space-y-0">
-            {sortedRankings.map((user, idx) => (
+            {ranked.map((user, idx) => (
               <div
                 key={user.discord_id}
                 className="bg-[#1a1a1a] md:bg-transparent rounded-lg md:rounded-none p-4 md:p-0 md:grid md:grid-cols-[40px_1fr_repeat(8,60px)] md:gap-2 md:px-4 md:py-3 md:border-b md:border-[#222] md:hover:bg-[#1a1a1a] transition-colors"
@@ -116,7 +88,7 @@ export default function RankingPage() {
                     <div key={opt.key} className="md:flex md:items-center md:justify-center">
                       <span className="block md:hidden text-[9px] text-[#666] mb-1">{opt.label}</span>
                       <span className={`text-[12px] ${sortBy === opt.key ? "text-[#5865F2] font-bold" : "text-[#ccc]"}`}>
-                        {getStatValue(user, opt.key)}
+                        {user[opt.key]}
                       </span>
                     </div>
                   ))}

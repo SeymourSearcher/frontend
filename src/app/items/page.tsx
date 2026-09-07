@@ -13,10 +13,13 @@ import MissingItem from "./MissingItem";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 import SellActionBar from "./SellActionBar";
 import VisualizeModal from "./VisualizeModal";
+import LoggedOutPreview from "./LoggedOutPreview";
 import { PieceIndex } from "@/lib/pieces";
 
 export default function ItemsPage() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  // Hooks run before the logged-out early return below, so the gate has to live here.
+  const isAuthed = !authLoading && !!user;
   const {
     stats,
     filter,
@@ -44,7 +47,7 @@ export default function ItemsPage() {
     canIncludeDyes,
     sortDirection,
     toggleSort,
-  } = useSeymours();
+  } = useSeymours(isAuthed);
 
   const {
     sellMode,
@@ -67,21 +70,33 @@ export default function ItemsPage() {
   const [userSeymours, setUserSeymours] = useState<[string, PieceIndex][]>([]);
 
   useEffect(() => {
+    if (!isAuthed) return;
     fetchUserSeymourHexes().then((result) => {
       if (result.ok) setUserSeymours(result.data);
     });
-  }, []);
+  }, [isAuthed]);
 
   const userHexes = useMemo(
     () => [...new Set(userSeymours.map(([hex]) => hex))],
     [userSeymours]
   );
 
+  const mainClasses = `min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif] ${sellMode ? "pb-24" : ""}`;
+
+  if (!authLoading && !user) {
+    return (
+      <main className={mainClasses}>
+        <h1 className="text-[1.5em] text-[#f0f0f0] mb-4 text-center">My Seymours</h1>
+        <LoggedOutPreview />
+      </main>
+    );
+  }
+
   return (
-    <main className={`min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif] ${sellMode ? "pb-24" : ""}`}>
+    <main className={mainClasses}>
       <h1 className="text-[1.5em] text-[#f0f0f0] mb-4 text-center">My Seymours</h1>
 
-      {stats && <p className="text-[#888] text-center mb-4 text-[12px]">Total: {stats.total_seymours}</p>}
+      {stats &&<p className="text-[#888] text-center mb-4 text-[12px]">Total: {stats.total_seymours}</p>}
 
       {successCount !== null && (
         <div className="max-w-[600px] mx-auto mb-4 bg-[#1a3a1a] border border-[#4ade80] rounded-lg p-3 flex items-center justify-between">

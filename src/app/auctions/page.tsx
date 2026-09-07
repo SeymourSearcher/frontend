@@ -27,6 +27,7 @@ type TabData =
   | { tab: "stats"; stats: AuctionStats; total: number };
 
 const NO_SETS: string[] = [];
+const PAGE_LIMIT = 48;
 
 export default function AuctionsPage() {
   const [tab, setTab] = useState<Tab>("active");
@@ -63,7 +64,7 @@ export default function AuctionsPage() {
   }
 
   function buildFilterParams(): AuctionFiltersParams {
-    const params: AuctionFiltersParams = { limit: 50, include_dyes: includeDyes };
+    const params: AuctionFiltersParams = { limit: PAGE_LIMIT, include_dyes: includeDyes };
     if (selectedPieces.length > 0) params.pieces = selectedPieces;
     if (binFilter !== "all") params.bin_filter = binFilter;
     if (tier) params.tier = tier as "t1" | "t2" | "t3";
@@ -75,7 +76,7 @@ export default function AuctionsPage() {
 
   async function loadTab(): Promise<ApiResult<TabData>> {
     if (tab === "recent-bids") {
-      return mapResult(await fetchRecentBids(50, includeDyes), (bids) => ({
+      return mapResult(await fetchRecentBids(PAGE_LIMIT, includeDyes), (bids) => ({
         tab: "recent-bids" as const,
         bids,
         total: bids.length,

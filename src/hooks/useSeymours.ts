@@ -25,7 +25,8 @@ const FILTERS: { key: FilterType; label: string; hasSubFilter: boolean }[] = [
 type GroupedSeymours = { [key: string]: Seymour[] };
 type SortDirection = "asc" | "desc";
 
-export function useSeymours() {
+/** `enabled` gates the user-scoped calls; pass false until auth resolves to a signed-in user. */
+export function useSeymours(enabled = true) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [filter, setFilter] = useState<FilterType>("all");
   const [selectedSubFilters, setSelectedSubFilters] = useState<string[]>([]);
@@ -63,10 +64,11 @@ export function useSeymours() {
   };
 
   useEffect(() => {
+    if (!enabled) return;
     fetchUserStats().then((result) => {
       if (result.ok) setStats(result.data);
     });
-  }, []);
+  }, [enabled]);
 
   useEffect(() => {
     if (hasSubFilter) {
@@ -86,7 +88,8 @@ export function useSeymours() {
     () => fetchUserSeymours(
       filter, subFilterParam, 0, 500, incompleteOnly, includeDyes, sortDirection || undefined
     ),
-    [filter, subFilterParam, incompleteOnly, includeDyes, sortDirection]
+    [filter, subFilterParam, incompleteOnly, includeDyes, sortDirection],
+    enabled
   );
 
   const seymours = state.status === "success" ? state.data : EMPTY_SEYMOURS;

@@ -3,7 +3,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 import { clearToken, fetchCurrentUser } from "@/lib/api";
-import { NETWORK_ERROR_STATUS } from "@/lib/apiResult";
 import { redirectToDiscord } from "@/lib/auth";
 import { User } from "@/types/user";
 
@@ -27,8 +26,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (result.ok) {
       setUser(result.data);
     } else {
-      // A failed reachability check must not discard a token that may still be good.
-      if (result.status !== NETWORK_ERROR_STATUS) clearToken();
+      // Only the server rejecting the token proves it's bad. A 500, a 502 from the
+      // proxy mid-deploy, or a dropped connection must not log the user out.
+      if (result.status === 401 || result.status === 403) clearToken();
       setUser(null);
     }
     setLoading(false);

@@ -14,8 +14,15 @@ export type AsyncState<T> =
  *
  * Responses are dropped unless they belong to the most recent run, so rapid
  * dependency changes (typing in a filter, flipping tabs) can't paint stale data.
+ *
+ * Pass `enabled: false` while a precondition is still unknown (e.g. auth hasn't
+ * resolved) — the hook stays in `loading` instead of firing a doomed request.
  */
-export function useAsyncData<T>(fetcher: () => Promise<ApiResult<T>>, deps: DependencyList) {
+export function useAsyncData<T>(
+  fetcher: () => Promise<ApiResult<T>>,
+  deps: DependencyList,
+  enabled = true
+) {
   const [state, setState] = useState<AsyncState<T>>({ status: "loading" });
   const runId = useRef(0);
 
@@ -23,8 +30,10 @@ export function useAsyncData<T>(fetcher: () => Promise<ApiResult<T>>, deps: Depe
   fetcherRef.current = fetcher;
 
   const reload = useCallback(async () => {
+    // Bump the run id so any in-flight response from before the gate closed is dropped.
     const id = ++runId.current;
     setState({ status: "loading" });
+    if (!enabled) return;
 
     const result = await fetcherRef.current();
     if (id !== runId.current) return;
@@ -36,7 +45,7 @@ export function useAsyncData<T>(fetcher: () => Promise<ApiResult<T>>, deps: Depe
     );
     // `deps` is the caller's declared dependency list; the fetcher is read via ref.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [enabled, ...deps]);
 
   useEffect(() => {
     reload();

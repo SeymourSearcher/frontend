@@ -174,8 +174,8 @@ export function fetchUserSeymourHexes() {
   return request<[string, PieceIndex][]>("/seymours/hex-codes/with-pieces");
 }
 
-export function fetchRankings() {
-  return request<RankingUser[]>("/stats/rankings");
+export function fetchRankings(sortBy?: keyof Stats) {
+  return request<RankingUser[]>(`/stats/rankings${toQuery({ sort_by: sortBy })}`);
 }
 
 export function fetchHexInfo(hexCode: string, includeDyes = false) {
