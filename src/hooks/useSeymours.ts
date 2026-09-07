@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchUserSeymours, fetchUserStats, fetchSubFilters } from "@/lib/api";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { Seymour, FilterType, SubFilterOption } from "@/types/seymour";
@@ -73,19 +73,30 @@ export function useSeymours(enabled = true) {
     });
   }, [enabled, version]);
 
+  // Read inside the fetch below without making the selection a dependency --
+  // that would refetch the options on every toggle.
+  const selectedRef = useRef<string[]>([]);
   useEffect(() => {
-    if (hasSubFilter) {
-      fetchSubFilters(filter, incompleteOnly, includeDyes).then((result) => {
-        const newFilters = result.ok ? result.data : [];
-        setAvailableSubFilters(newFilters);
-        const names = new Set(newFilters.map(o => o.name));
-        setSelectedSubFilters(prev => prev.filter(v => names.has(v)));
-      });
-    } else {
+    selectedRef.current = selectedSubFilters;
+  }, [selectedSubFilters]);
+
+  // The selection carries across tabs: only names the new tab does not offer are
+  // dropped, and All comes back only when that leaves nothing. Tabs without a
+  // sub-filter keep it untouched so switching through one is not a reset -- the
+  // backend ignores sub_filter for those.
+  useEffect(() => {
+    if (!hasSubFilter) {
       setAvailableSubFilters([]);
-      setSelectedSubFilters([]);
+      return;
     }
-    setAllSelected(true);
+    fetchSubFilters(filter, incompleteOnly, includeDyes).then((result) => {
+      const newFilters = result.ok ? result.data : [];
+      const names = new Set(newFilters.map(o => o.name));
+      const carried = selectedRef.current.filter(v => names.has(v));
+      setAvailableSubFilters(newFilters);
+      setSelectedSubFilters(carried);
+      setAllSelected(carried.length === 0);
+    });
   }, [filter, hasSubFilter, incompleteOnly, includeDyes]);
 
   const { state } = useAsyncData(
