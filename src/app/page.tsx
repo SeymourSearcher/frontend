@@ -1,7 +1,6 @@
-import type { FeaturedSet, RankingUser, Stats } from "@/types/stats";
+import type { RankingUser, Stats } from "@/types/stats";
 import type { EndedAuction } from "@/types/auction";
 import { HomeContent } from "@/components/HomeContent";
-import { FeaturedSets } from "@/components/home/FeaturedSets";
 import { TopCollectors } from "@/components/home/TopCollectors";
 import { TopSalesTicker } from "@/components/home/TopSalesTicker";
 import { env } from "@/lib/env";
@@ -23,17 +22,15 @@ async function getJson<T>(path: string): Promise<T | null> {
 }
 
 export default async function Home() {
-  const [stats, rankings, featuredSets, topSales] = await Promise.all([
+  const [stats, rankings, topSales] = await Promise.all([
     getJson<Stats>("/stats/"),
     getJson<RankingUser[]>("/stats/rankings"),
-    getJson<FeaturedSet[]>("/stats/custom-sets"),
     getJson<EndedAuction[]>("/auctions/top-sales"),
   ]);
 
   return (
     <main className="min-h-screen bg-[#121212] pt-[22px] pb-16">
       <HomeContent stats={stats} />
-      <FeaturedSets sets={featuredSets ?? []} />
       <TopCollectors users={(rankings ?? []).slice(0, TOP_COLLECTORS)} />
       <TopSalesTicker sales={topSales ?? []} />
     </main>

@@ -16,12 +16,3 @@ export interface RankingUser extends Stats {
   username: string;
   avatar_hash: string | null;
 }
-
-/** Shape returned by /stats/custom-sets. `hexes` is helmet, chestplate, leggings, boots. */
-export interface FeaturedSet {
-  discord_id: string;
-  username: string;
-  avatar_hash: string | null;
-  avg_delta_e: number;
-  hexes: string[];
-}
