@@ -23,8 +23,11 @@ function OwnerTile({ match }: { match: HexOwnerMatch }) {
     <li className={TILE_CLASS} title={`${PIECE_SLOT_NAMES[match.piece]} · #${match.hex_color}`}>
       <MinecraftItem piece={match.piece} hex={match.hex_color} scale={3} />
       <span className="flex items-center gap-1 max-w-full">
-        <Avatar user={match} size="sm" alt="" />
         <span className="text-[11px] text-[#ccc] truncate">{match.username}</span>
+        {/* A long name truncates; without this the avatar squashes instead. */}
+        <span className="shrink-0">
+          <Avatar user={match} size="sm" alt="" />
+        </span>
       </span>
       <span className="text-[10px] text-[#aaa]">
         ΔE {match.delta_e}
