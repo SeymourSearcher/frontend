@@ -7,12 +7,12 @@ import { useAsyncData } from "@/hooks/useAsyncData";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { PatternFilters } from "@/components/search/PatternFilters";
 import { PatternLegend } from "@/components/search/PatternLegend";
-import { PatternResultRow } from "@/components/search/PatternResultRow";
+import { PatternResultCard } from "@/components/search/PatternResultCard";
 import type { PieceIndex } from "@/lib/pieces";
 import type { HexStatsTier } from "@/types/hex";
 import type { HexSearchPage } from "@/types/hexSearch";
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE = 10;
 // Mirrors MAX_OFFSET in backend/app/services/hex_search.py.
 const MAX_OFFSET = 10_000;
 
@@ -25,14 +25,13 @@ interface Filters {
 
 const DEFAULTS: Filters = { includeDyes: false, ownedOnly: false, tier: "all", pieces: [] };
 
+const GRID = "grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3";
+
 function Skeleton() {
   return (
     <>
-      {Array.from({ length: 8 }, (_, i) => (
-        <div
-          key={i}
-          className="h-[64px] bg-[#1a1a1a] border border-[#2c2c2c] rounded animate-pulse"
-        />
+      {Array.from({ length: PAGE_SIZE }, (_, i) => (
+        <div key={i} className="h-[150px] bg-[#1a1a1a] rounded-lg animate-pulse" />
       ))}
     </>
   );
@@ -91,17 +90,22 @@ export function PatternResults({ pattern }: { pattern: string }) {
         </p>
       )}
 
-      <div className="space-y-2 min-h-[50vh]">
-        {state.status === "loading" ? (
-          <Skeleton />
-        ) : state.status === "error" ? (
+      {/* The floor keeps the pager from jumping up on a short or empty page. */}
+      <div className="min-h-[340px]">
+        {state.status === "error" ? (
           <StatusMessage tone="error">{state.detail}</StatusMessage>
-        ) : state.data.items.length === 0 ? (
+        ) : state.status === "success" && state.data.items.length === 0 ? (
           <StatusMessage>No colours match these filters</StatusMessage>
         ) : (
-          state.data.items.map((result) => (
-            <PatternResultRow key={result.hex_code} result={result} />
-          ))
+          <div className={GRID}>
+            {state.status === "loading" ? (
+              <Skeleton />
+            ) : (
+              state.data.items.map((result) => (
+                <PatternResultCard key={result.hex_code} result={result} />
+              ))
+            )}
+          </div>
         )}
       </div>
 
