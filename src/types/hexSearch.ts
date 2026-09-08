@@ -1,4 +1,5 @@
 import type { PieceIndex } from "@/lib/pieces";
+import type { AuctionStats, EndedAuction } from "@/types/auction";
 import type { HexStatsTier } from "@/types/hex";
 
 export interface HexSearchOwner {
@@ -32,6 +33,24 @@ export interface HexSearchPage {
   limit: number;
   offset: number;
   items: HexSearchResult[];
+}
+
+/** Which pattern and band the auction figures were taken under. */
+export interface PatternReference {
+  /** Normalised — upper-cased and "#"-stripped — so it may differ from what was sent. */
+  pattern: string;
+  pattern_total: number;
+  /** The band actually applied — null when every band was asked for. */
+  tier: string | null;
+}
+
+/** Sales of the colours the pattern matches, not of the catalog colours they're near. */
+export interface PatternAuctionStats extends AuctionStats, PatternReference {}
+
+/** The sales PatternAuctionStats aggregates, newest first. */
+export interface PatternSalesPage extends PatternReference {
+  total: number;
+  items: EndedAuction[];
 }
 
 export interface HexSearchParams {

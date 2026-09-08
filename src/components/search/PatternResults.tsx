@@ -6,6 +6,7 @@ import { fetchHexSearch } from "@/lib/api";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { useAuth } from "@/contexts/AuthContext";
 import { StatusMessage } from "@/components/ui/StatusMessage";
+import { PatternAuctionStats } from "@/components/search/PatternAuctionStats";
 import { PatternFilters } from "@/components/search/PatternFilters";
 import { PatternLegend } from "@/components/search/PatternLegend";
 import { PatternResultCard } from "@/components/search/PatternResultCard";
@@ -133,6 +134,13 @@ export function PatternResults({ pattern }: { pattern: string }) {
           </button>
         </div>
       )}
+
+      <PatternAuctionStats
+        pattern={pattern}
+        includeDyes={includeDyes}
+        tier={tier}
+        pieces={pieces}
+      />
     </>
   );
 }
