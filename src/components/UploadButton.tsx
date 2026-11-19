@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCollectionVersion } from "@/contexts/CollectionVersionContext";
+import { track } from "@/lib/analytics";
 import { uploadSeymours } from "@/lib/api";
 
 const STATUS_MS = 6000;
@@ -42,8 +43,10 @@ export function UploadButton({ className, onRequireLogin }: UploadButtonProps) {
         text: `Imported ${result.data.imported} (${result.data.skipped} skipped)`,
       });
       bump();
+      track("collection_uploaded", { piece_count: result.data.imported });
     } else {
       setStatus({ tone: "error", text: `Upload failed: ${result.detail}` });
+      track("upload_failed", { reason: result.detail });
     }
   }
 

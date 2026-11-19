@@ -6,26 +6,21 @@ import type {
   SubFilterOption,
 } from "@/types/seymour";
 import type { Stats, RankingUser } from "@/types/stats";
+import type { User } from "@/types/user";
 import type { PieceIndex } from "@/lib/pieces";
 import type { ApiResult } from "@/lib/apiResult";
 import { getToken, postJson, request, toQuery } from "./client";
-
-interface CurrentUser {
-  discord_id: string;
-  username: string;
-  avatar_hash: string | null;
-}
 
 export function exchangeCode(code: string) {
   return postJson<{ access_token: string }>("/auth/discord/callback", { code });
 }
 
-export function fetchCurrentUser(): Promise<ApiResult<CurrentUser>> {
+export function fetchCurrentUser(): Promise<ApiResult<User>> {
   // Short-circuit rather than spend a guaranteed-401 round trip on every anonymous page load.
   if (!getToken()) {
     return Promise.resolve({ ok: false, status: 401, detail: "Not signed in" });
   }
-  return request<CurrentUser>("/auth/me");
+  return request<User>("/auth/me");
 }
 
 export function uploadSeymours(file: File) {

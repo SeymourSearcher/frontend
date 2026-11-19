@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 
 import { clearToken, fetchCurrentUser, onSessionExpired } from "@/lib/api";
+import { identifyUser, resetAnalytics, track } from "@/lib/analytics";
 import { redirectToDiscord } from "@/lib/auth";
 import { User } from "@/types/user";
 
@@ -34,6 +35,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const result = await fetchCurrentUser();
     if (result.ok) {
       setUser(result.data);
+      identifyUser(result.data);
     } else {
       // Only the server rejecting the token proves it's bad. A 500, a 502 from the
       // proxy mid-deploy, or a dropped connection must not log the user out.
@@ -52,15 +54,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(
     () =>
       onSessionExpired(() => {
-        if (userRef.current) setSessionExpired(true);
+        if (userRef.current) {
+          setSessionExpired(true);
+          resetAnalytics();
+        }
         setUser(null);
       }),
     []
   );
 
+  const login = useCallback(() => {
+    track("login_started");
+    redirectToDiscord();
+  }, []);
+
   const logout = useCallback(() => {
     clearToken();
     setUser(null);
+    resetAnalytics();
   }, []);
 
   const dismissSessionExpired = useCallback(() => setSessionExpired(false), []);
@@ -71,11 +82,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       loading,
       sessionExpired,
       dismissSessionExpired,
-      login: redirectToDiscord,
+      login,
       logout,
       refresh,
     }),
-    [user, loading, sessionExpired, dismissSessionExpired, logout, refresh]
+    [user, loading, sessionExpired, dismissSessionExpired, login, logout, refresh]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

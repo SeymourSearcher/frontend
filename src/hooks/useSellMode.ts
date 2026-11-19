@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { track } from "@/lib/analytics";
 import { createSellOrders } from "@/lib/api";
 import { useCollectionVersion } from "@/contexts/CollectionVersionContext";
 
@@ -69,6 +70,7 @@ export function useSellMode() {
       return false;
     }
 
+    track("sell_order_created", { price: priceNum, piece_count: result.data.length });
     setSuccessCount(result.data.length);
     setSelectedIds(new Set());
     setPrice("");

@@ -18,7 +18,7 @@ export default function SearchPage() {
 
         <div className="mb-4">
           {/* Keyed so the box reseeds when the query string changes under it. */}
-          <HexSearchInput key={pattern} initialValue={pattern} showPreview />
+          <HexSearchInput source="search_page" key={pattern} initialValue={pattern} showPreview />
         </div>
 
         {isValidPattern(pattern) ? (

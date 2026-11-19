@@ -29,6 +29,7 @@ const HEADER_SEARCH_BUTTON_CLASS =
 function HeaderSearch({ onNavigate }: { onNavigate?: () => void }) {
   return (
     <HexSearchInput
+      source="header"
       showHint={false}
       placeholder="hex"
       inputClassName={HEADER_SEARCH_INPUT_CLASS}

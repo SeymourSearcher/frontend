@@ -2,6 +2,7 @@
 
 import { useState, ReactNode } from "react";
 import { useRouter } from "next/navigation";
+import { track, type SearchSource } from "@/lib/analytics";
 import {
   HEX_LENGTH,
   hasWildcard,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/hex";
 
 interface HexSearchInputProps {
+  source: SearchSource;
   initialValue?: string;
   showPreview?: boolean;
   showHint?: boolean;
@@ -24,6 +26,7 @@ interface HexSearchInputProps {
 }
 
 export function HexSearchInput({
+  source,
   initialValue = "",
   showPreview = false,
   showHint = true,
@@ -43,9 +46,13 @@ export function HexSearchInput({
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!isValid) return;
-    router.push(
-      hasWildcard(input) ? `/search?p=${encodeURIComponent(input)}` : `/hex/${input}`
-    );
+    if (hasWildcard(input)) {
+      track("pattern_searched", { pattern: input, source });
+      router.push(`/search?p=${encodeURIComponent(input)}`);
+    } else {
+      track("hex_searched", { hex: input, source });
+      router.push(`/hex/${input}`);
+    }
     onNavigate?.();
   }
 

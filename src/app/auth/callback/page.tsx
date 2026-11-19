@@ -4,6 +4,7 @@ import { Suspense, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { useAuth } from "@/contexts/AuthContext";
+import { track } from "@/lib/analytics";
 import { exchangeCode, setToken } from "@/lib/api";
 import { consumeOAuthState } from "@/lib/auth";
 
@@ -38,6 +39,7 @@ function AuthCallbackContent() {
       // The provider already resolved as logged-out on mount; without this the
       // header stays signed-out until a full reload.
       await refresh();
+      track("login_completed");
       router.push("/items");
     });
   }, [searchParams, router, refresh]);

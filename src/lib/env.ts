@@ -24,4 +24,5 @@ export const env = {
     process.env.NEXT_PUBLIC_DISCORD_CLIENT_ID
   ),
   discordRedirectUri: process.env.NEXT_PUBLIC_DISCORD_REDIRECT_URI || "http://localhost:3000",
+  posthogKey: process.env.NEXT_PUBLIC_POSTHOG_KEY || null,
 } as const;

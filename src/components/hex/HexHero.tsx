@@ -83,6 +83,7 @@ export function HexHero({ hexcode, reference, exact, children }: HexHeroProps) {
         <HexSearchInput
           // Remounts on navigation; initialValue only seeds the field once.
           key={hexcode}
+          source="hex_page"
           initialValue={hexcode}
           colorizeInput
           placeholder="FFFF00"

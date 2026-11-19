@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@/lib/analytics";
 import { cancelOrder, cancelSellOrder, createOrder } from "@/lib/api";
 import type { ApiResult } from "@/lib/apiResult";
 import type { BuyOrderCreate } from "@/types/marketplace";
@@ -12,11 +13,13 @@ export function useOrderMutations() {
 
   async function cancelWith(
     cancel: (orderId: number) => Promise<ApiResult<unknown>>,
-    orderId: number
+    orderId: number,
+    side: "buy" | "sell"
   ): Promise<string | null> {
     const result = await cancel(orderId);
     if (!result.ok) return result.detail;
     bump();
+    track("order_cancelled", { side });
     return null;
   }
 
@@ -26,6 +29,7 @@ export function useOrderMutations() {
     for (const order of orders) {
       const result = await createOrder(order);
       errors.push(result.ok ? null : result.detail);
+      if (result.ok) track("buy_order_created", { price: order.price });
     }
     if (errors.includes(null)) bump();
     return errors;
@@ -33,7 +37,7 @@ export function useOrderMutations() {
 
   return {
     createBuyOrders,
-    cancelBuyOrder: (orderId: number) => cancelWith(cancelOrder, orderId),
-    cancelSellOrder: (orderId: number) => cancelWith(cancelSellOrder, orderId),
+    cancelBuyOrder: (orderId: number) => cancelWith(cancelOrder, orderId, "buy"),
+    cancelSellOrder: (orderId: number) => cancelWith(cancelSellOrder, orderId, "sell"),
   };
 }

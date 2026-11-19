@@ -9,7 +9,7 @@ export default function NotFound() {
         Nothing lives here. Hex pages take a six-digit code, like /hex/FF00FF.
       </p>
       <div className="mb-6">
-        <HexSearchInput showHint={false} colorizeInput />
+        <HexSearchInput source="not_found" showHint={false} colorizeInput />
       </div>
       <Link href="/" className="text-[#5865F2] text-[12px] no-underline hover:underline">
         ← Back home

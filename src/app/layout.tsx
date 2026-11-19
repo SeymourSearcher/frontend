@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { HeaderClient } from "@/components/HeaderClient";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CollectionVersionProvider } from "@/contexts/CollectionVersionContext";
@@ -56,12 +57,14 @@ export default function RootLayout({
         <OrganizationJsonLd />
       </head>
       <body>
-        <AuthProvider>
-          <CollectionVersionProvider>
-            <HeaderClient />
-            <main>{children}</main>
-          </CollectionVersionProvider>
-        </AuthProvider>
+        <AnalyticsProvider>
+          <AuthProvider>
+            <CollectionVersionProvider>
+              <HeaderClient />
+              <main>{children}</main>
+            </CollectionVersionProvider>
+          </AuthProvider>
+        </AnalyticsProvider>
       </body>
     </html>
   );
