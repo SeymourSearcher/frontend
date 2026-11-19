@@ -37,6 +37,7 @@ npm run dev                         # http://localhost:3000
 | `NEXT_PUBLIC_DISCORD_CLIENT_ID` | yes | Client ID of your Discord application |
 | `NEXT_PUBLIC_DISCORD_REDIRECT_URI` | no | OAuth callback, normally `<frontend URL>/auth/callback`. Must match the backend and Discord settings |
 | `NEXT_PUBLIC_FRONTEND_URL` | no | Public site URL for canonical links, the sitemap and Open Graph tags, default `http://localhost:3000` |
+| `INTERNAL_API_URL` | no | Backend URL for server-side rendering, read at runtime. Point it at the backend on the internal network (e.g. `http://backend:8000`) so page renders skip the CDN and the API's per-IP rate limits. Defaults to `NEXT_PUBLIC_API_URL` |
 
 ## Scripts
 

@@ -1,15 +1,33 @@
 import { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/seo";
 import { indexableRoutes } from "@/lib/routeConfig";
+import { getJson } from "@/lib/serverFetch";
 
-// TODO: add /hex/{target_hex} for every catalog target colour once the backend exposes a list of them.
-export default function sitemap(): MetadataRoute.Sitemap {
+type CatalogTarget = { hex: string; name: string };
+
+const CATALOG_REVALIDATE_SECONDS = 86_400;
+
+export const revalidate = 86_400;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url.replace(/\/$/, "");
+  const now = new Date();
 
-  return indexableRoutes.map((route) => ({
+  const pages: MetadataRoute.Sitemap = indexableRoutes.map((route) => ({
     url: `${baseUrl}${route.path === "/" ? "" : route.path}`,
-    lastModified: new Date(),
+    lastModified: now,
     changeFrequency: route.changeFrequency,
     priority: route.priority,
   }));
+
+  const targets =
+    (await getJson<CatalogTarget[]>("/catalog/targets", CATALOG_REVALIDATE_SECONDS)) ?? [];
+  const hexPages: MetadataRoute.Sitemap = targets.map(({ hex }) => ({
+    url: `${baseUrl}/hex/${hex}`,
+    lastModified: now,
+    changeFrequency: "daily",
+    priority: 0.6,
+  }));
+
+  return [...pages, ...hexPages];
 }
