@@ -1,38 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Seymour Searcher
 
-## Getting Started
+The web app for Seymour Searcher, a collection tracker and marketplace for Seymour's Special Armor on Hypixel SkyBlock. Players sign in with Discord, upload their dyed armor pieces, see which sets their colours could complete, and trade pieces through buy and sell orders.
 
-First, run the development server:
+Built with Next.js 16 (App Router), React 19 and TypeScript. All data comes from the [Seymour Searcher API](https://github.com/SeymourFinder/backend).
+
+## Pages
+
+| Route | What it shows |
+|---|---|
+| `/` | Landing page and global collection stats |
+| `/items` | Your collection, set progress and custom sets, with upload and sell actions |
+| `/hex/[hexcode]` | One colour: closest armor matches, owners, auction stats and past sales |
+| `/search` | Hex pattern search (`21????`, `XXYYZZ`) |
+| `/marketplace` | Buy and sell orders, and orders your collection can fill |
+| `/auctions` | Active and ended Seymour auctions, bid feed and peak times |
+| `/ranking` | Collector leaderboards |
+| `/faq` | Frequently asked questions |
+
+## Getting started
+
+You need Node.js 22 and a running backend (see its README).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm ci
+cp .env.local.example .env.local   # then fill in the values below
+npm run dev                         # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Configuration
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`NEXT_PUBLIC_*` variables are inlined at build time, so set them before `npm run build`, not only at runtime. A missing required variable fails the build.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Required | Description |
+|---|---|---|
+| `NEXT_PUBLIC_API_URL` | no | Backend base URL, default `http://localhost:8000` |
+| `NEXT_PUBLIC_DISCORD_CLIENT_ID` | yes | Client ID of your Discord application |
+| `NEXT_PUBLIC_DISCORD_REDIRECT_URI` | no | OAuth callback, normally `<frontend URL>/auth/callback`. Must match the backend and Discord settings |
+| `NEXT_PUBLIC_FRONTEND_URL` | no | Public site URL for canonical links, the sitemap and Open Graph tags, default `http://localhost:3000` |
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+| Command | Does |
+|---|---|
+| `npm run dev` | Development server with hot reload |
+| `npm run build` | Production build |
+| `npm start` | Serve the production build |
+| `npm run lint` | ESLint |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Project layout
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+  app/          routes; each folder holds its page and page-specific components
+  components/   shared UI (hex swatches, search, auctions, icons, primitives)
+  hooks/        data and auth hooks
+  lib/          API client, auth, env validation, SEO helpers
+  types/        shared TypeScript types
+public/         static assets
+```
 
-## Deploy on Vercel
+## Docker
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The image builds a standalone Next.js server. Because the `NEXT_PUBLIC_*` values are baked in during the build, put them in `.env.production` in the build context first.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+docker build -t seymour-frontend .
+docker run -p 3000:3000 seymour-frontend
+```
 
-Cool project
+## Contributing
+
+Issues and pull requests are welcome. Run `npm run lint` and `npm run build` before opening a pull request.
+
+## License
+
+[GPL-3.0-or-later](LICENSE).
