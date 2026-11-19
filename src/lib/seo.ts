@@ -1,6 +1,8 @@
 import { Metadata } from "next";
 
 import { env } from "@/lib/env";
+import { formatPrice } from "@/lib/format";
+import type { HexInfo } from "@/types/hex";
 
 const BASE_URL = env.frontendUrl;
 
@@ -63,7 +65,8 @@ export function createMetadata({
   const fullImage = image || siteConfig.ogImage;
 
   return {
-    title: fullTitle,
+    // absolute: fullTitle already has the suffix the root layout's template would add again.
+    title: { absolute: fullTitle },
     description: fullDescription,
     keywords: siteConfig.keywords,
     authors: [{ name: siteConfig.author }],
@@ -121,10 +124,30 @@ export const pageMetadata = {
   }),
 };
 
-export function createHexPageMetadata(hexcode: string): Metadata {
+function describeHex(hexcode: string, info: HexInfo | null): string {
+  const exact = info?.exact_match ?? null;
+  const reference = exact ?? info?.top_matches[0] ?? null;
+  if (!reference) {
+    return `Find Seymours armor on Hypixel Skyblock matching #${hexcode}. Seymour Cafe search for Garden Velvet Top Hats and armor pieces by hex code.`;
+  }
+
+  const match = exact
+    ? `#${hexcode} is an exact match for ${exact.target_name}.`
+    : `#${hexcode} is ΔE ${reference.delta_e} from ${reference.target_name}, its closest catalog colour.`;
+  const { median, sales } = reference.price;
+  const price =
+    median === null
+      ? ""
+      : ` Median sale ${formatPrice(median)} across ${sales} sale${sales === 1 ? "" : "s"}.`;
+  return `${match}${price} Owners, recent auctions and close matches for this Seymour armor colour on Hypixel Skyblock.`;
+}
+
+/** `info` is the unfiltered hex lookup, or null when the API could not serve it. */
+export function createHexPageMetadata(hexcode: string, info: HexInfo | null): Metadata {
+  const exact = info?.exact_match;
   return createMetadata({
-    title: `#${hexcode} Seymour Armor`,
-    description: `Find Seymours armor on Hypixel Skyblock matching #${hexcode}. Seymour Cafe search for Garden Velvet Top Hats and armor pieces by hex code.`,
+    title: exact ? `#${hexcode} ${exact.target_name}` : `#${hexcode} Seymour Armor`,
+    description: describeHex(hexcode, info),
     path: `/hex/${hexcode}`,
   });
 }

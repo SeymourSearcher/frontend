@@ -17,13 +17,20 @@ export type AsyncState<T> =
  *
  * Pass `enabled: false` while a precondition is still unknown (e.g. auth hasn't
  * resolved) — the hook stays in `loading` instead of firing a doomed request.
+ *
+ * `initialData` (e.g. server-rendered) is shown immediately and skips the first
+ * fetch; any later dependency change fetches as usual.
  */
 export function useAsyncData<T>(
   fetcher: () => Promise<ApiResult<T>>,
   deps: DependencyList,
-  enabled = true
+  enabled = true,
+  initialData?: T
 ) {
-  const [state, setState] = useState<AsyncState<T>>({ status: "loading" });
+  const [state, setState] = useState<AsyncState<T>>(
+    initialData === undefined ? { status: "loading" } : { status: "success", data: initialData }
+  );
+  const skipFirstRun = useRef(initialData !== undefined);
   const runId = useRef(0);
 
   const fetcherRef = useRef(fetcher);
@@ -48,6 +55,10 @@ export function useAsyncData<T>(
   }, [enabled, ...deps]);
 
   useEffect(() => {
+    if (skipFirstRun.current) {
+      skipFirstRun.current = false;
+      return;
+    }
     reload();
   }, [reload]);
 

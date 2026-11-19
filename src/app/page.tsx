@@ -3,29 +3,19 @@ import type { EndedAuction } from "@/types/auction";
 import { HomeContent } from "@/components/HomeContent";
 import { TopCollectors } from "@/components/home/TopCollectors";
 import { TopSalesTicker } from "@/components/home/TopSalesTicker";
-import { env } from "@/lib/env";
+import { getJson } from "@/lib/serverFetch";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata = pageMetadata.home;
 
 const TOP_COLLECTORS = 3;
-
-/** Null on any failure: a section the API could not serve is omitted, not fatal. */
-async function getJson<T>(path: string): Promise<T | null> {
-  try {
-    const res = await fetch(`${env.apiUrl}${path}`, { next: { revalidate: 60 } });
-    if (!res.ok) return null;
-    return res.json();
-  } catch {
-    return null;
-  }
-}
+const REVALIDATE_S = 60;
 
 export default async function Home() {
   const [stats, rankings, topSales] = await Promise.all([
-    getJson<Stats>("/stats/"),
-    getJson<RankingUser[]>("/stats/rankings"),
-    getJson<EndedAuction[]>("/auctions/top-sales"),
+    getJson<Stats>("/stats/", REVALIDATE_S),
+    getJson<RankingUser[]>("/stats/rankings", REVALIDATE_S),
+    getJson<EndedAuction[]>("/auctions/top-sales", REVALIDATE_S),
   ]);
 
   return (
