@@ -41,7 +41,8 @@ function SaleRow({ sale, deltaE }: { sale: EndedAuction; deltaE: number }) {
 
       {sale.is_bin && <span className="text-[9px] text-[#5865F2] font-bold">BIN</span>}
 
-      <span className="text-[10px] text-[#666] ml-auto shrink-0">
+      {/* Relative to the clock, so the server's render and hydration can differ by a tick. */}
+      <span className="text-[10px] text-[#666] ml-auto shrink-0" suppressHydrationWarning>
         {formatTimestamp(sale.timestamp)}
       </span>
     </li>

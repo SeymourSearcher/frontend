@@ -85,7 +85,8 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
             </>
           ) : (
             <>
-              <span className="text-[#f0f0f0] font-medium">
+              {/* see SalesList's timestamp */}
+              <span className="text-[#f0f0f0] font-medium" suppressHydrationWarning>
                 {!activeAuction.end_time
                   ? "N/A"
                   : formatTimeUntil(activeAuction.end_time, "Ended")}
