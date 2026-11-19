@@ -11,8 +11,7 @@ import { usePageResetOn } from "@/hooks/usePageResetOn";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { MinecraftItem } from "@/components/ui/MinecraftItem";
 import { TIER_CONFIG, tierForDeltaE } from "@/components/hex/tierConfig";
-
-export const SALES_PAGE_SIZE = 8;
+import { SALES_PAGE_SIZE } from "@/lib/api";
 
 const ROW_CLASS = "flex items-center gap-3 px-3 h-12 rounded bg-[#1a1a1a] border border-[#2a2a2a]";
 
@@ -63,6 +62,8 @@ interface SalesListProps<T extends EndedAuction> {
   heading: string;
   emptyMessage: string;
   fetchPage: (limit: number, offset: number) => Promise<ApiResult<{ total: number; items: T[] }>>;
+  /** Server-rendered first page for the initial deps. */
+  initialPage?: { total: number; items: T[] };
   /** What reshapes the list. Any change refetches and returns to the first page. */
   deps: DependencyList;
   /** Which distance a row shows — the callers measure from different origins. */
@@ -76,13 +77,16 @@ export function SalesList<T extends EndedAuction>({
   fetchPage,
   deps,
   deltaE,
+  initialPage,
 }: SalesListProps<T>) {
   // A held offset could otherwise land past the end of the reshaped list.
   const [page, setPage] = usePageResetOn(JSON.stringify(deps));
 
   const { state } = useAsyncData(
     () => fetchPage(SALES_PAGE_SIZE, page * SALES_PAGE_SIZE),
-    [...deps, page]
+    [...deps, page],
+    true,
+    initialPage
   );
 
   const shown = state.status === "success" ? state.data.items.length : 0;

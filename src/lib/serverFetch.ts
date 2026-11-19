@@ -2,7 +2,8 @@ import { cache } from "react";
 import { env } from "@/lib/env";
 import type { PieceIndex } from "@/lib/pieces";
 import type { AuctionStats } from "@/types/auction";
-import type { HexInfo, HexOwnersPage } from "@/types/hex";
+import type { HexAuctionStats, HexInfo, HexOwnersPage, HexSalesPage } from "@/types/hex";
+import { SALES_PAGE_SIZE } from "@/lib/api/hex";
 
 const TIMEOUT_MS = 5000;
 
@@ -35,6 +36,13 @@ export const getHexInfo = cache((hexcode: string) => getJson<HexInfo>(`/hex/${he
 export const getHexOwners = cache((hexcode: string) =>
   getJson<HexOwnersPage>(`/hex/${hexcode}/owners?limit=1`, 300)
 );
+
+/** The hex page's default view: no dyes, all slots, the colour's own tier. */
+export const getHexAuctionStats = (hexcode: string) =>
+  getJson<HexAuctionStats>(`/hex/${hexcode}/auction-stats`, 300);
+
+export const getHexSales = (hexcode: string) =>
+  getJson<HexSalesPage>(`/hex/${hexcode}/sales?limit=${SALES_PAGE_SIZE}&offset=0`, 300);
 
 export const PIECE_REVALIDATE_SECONDS = 600;
 

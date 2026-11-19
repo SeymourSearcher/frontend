@@ -14,6 +14,8 @@ import type {
 import type { PieceIndex } from "@/lib/pieces";
 import { request, toQuery } from "./client";
 
+export const SALES_PAGE_SIZE = 8;
+
 export function fetchHexInfo(hexCode: string, includeDyes = false, pieces?: PieceIndex[]) {
   const query = toQuery({
     include_dyes: includeDyes || undefined,
@@ -55,7 +57,7 @@ export function fetchHexSales(
   includeDyes = false,
   pieces?: PieceIndex[],
   tier?: HexStatsTier,
-  limit = 8,
+  limit = SALES_PAGE_SIZE,
   offset = 0
 ) {
   const query = toQuery({
@@ -113,7 +115,7 @@ export function fetchPatternSales(
   includeDyes = false,
   pieces?: PieceIndex[],
   tier?: HexStatsTier,
-  limit = 8,
+  limit = SALES_PAGE_SIZE,
   offset = 0
 ) {
   const query = patternQuery(pattern, includeDyes, pieces, tier, { limit, offset });

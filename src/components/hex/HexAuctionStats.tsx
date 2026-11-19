@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { fetchHexAuctionStats } from "@/lib/api";
-import type { HexAuctionStats as Stats, HexStatsTier } from "@/types/hex";
+import type { HexAuctionStats as Stats, HexSalesPage, HexStatsTier } from "@/types/hex";
 import type { PieceIndex } from "@/lib/pieces";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { StatusMessage } from "@/components/ui/StatusMessage";
@@ -20,6 +20,9 @@ interface HexAuctionStatsProps {
   hexcode: string;
   includeDyes: boolean;
   pieces: PieceIndex[];
+  /** Server-rendered data for the default view (no dyes, all slots, own tier). */
+  initialStats?: Stats;
+  initialSales?: HexSalesPage;
 }
 
 function TierChips({
@@ -72,13 +75,21 @@ function Caption({ stats }: { stats: Stats }) {
 }
 
 /** Elaborates on the hero's estimate — same colour, and its tier by default. */
-export function HexAuctionStats({ hexcode, includeDyes, pieces }: HexAuctionStatsProps) {
+export function HexAuctionStats({
+  hexcode,
+  includeDyes,
+  pieces,
+  initialStats,
+  initialSales,
+}: HexAuctionStatsProps) {
   const [tier, setTier] = useState<HexStatsTier | undefined>(undefined);
   const pieceKey = pieces.join(",");
 
   const { state } = useAsyncData<Stats>(
     () => fetchHexAuctionStats(hexcode, includeDyes, pieces, tier),
-    [hexcode, includeDyes, pieceKey, tier]
+    [hexcode, includeDyes, pieceKey, tier],
+    true,
+    initialStats
   );
 
   const data = state.status === "success" ? state.data : null;
@@ -120,6 +131,7 @@ export function HexAuctionStats({ hexcode, includeDyes, pieces }: HexAuctionStat
             includeDyes={includeDyes}
             pieces={pieces}
             tier={tier}
+            initialPage={initialSales}
           />
         </div>
       )}

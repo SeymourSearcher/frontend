@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { fetchHexInfo } from "@/lib/api";
-import type { HexInfo } from "@/types/hex";
+import type {
+  HexAuctionStats as HexAuctionStatsData,
+  HexInfo,
+  HexSalesPage,
+} from "@/types/hex";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { HexHero } from "@/components/hex/HexHero";
@@ -32,9 +36,16 @@ interface HexPageClientProps {
   hexcode: string;
   /** The unfiltered hex info, or null if the server could not fetch it. */
   initialInfo: HexInfo | null;
+  initialStats: HexAuctionStatsData | null;
+  initialSales: HexSalesPage | null;
 }
 
-export function HexPageClient({ hexcode, initialInfo }: HexPageClientProps) {
+export function HexPageClient({
+  hexcode,
+  initialInfo,
+  initialStats,
+  initialSales,
+}: HexPageClientProps) {
   const [includeDyes, setIncludeDyes] = useState(false);
   const [pieces, setPieces] = useState<PieceIndex[]>([]);
   const pieceKey = pieces.join(",");
@@ -84,7 +95,13 @@ export function HexPageClient({ hexcode, initialInfo }: HexPageClientProps) {
           )}
         </div>
 
-        <HexAuctionStats hexcode={hexcode} includeDyes={includeDyes} pieces={pieces} />
+        <HexAuctionStats
+          hexcode={hexcode}
+          includeDyes={includeDyes}
+          pieces={pieces}
+          initialStats={initialStats ?? undefined}
+          initialSales={initialSales ?? undefined}
+        />
       </div>
     </main>
   );
