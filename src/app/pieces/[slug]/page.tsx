@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import type { ActiveAuctionListResponse, EndedAuctionListResponse } from "@/types/auction";
-import { PIECE_INDEXES, PIECE_ITEM_NAMES, PIECE_SLUGS, pieceForSlug, piecePath, pieceSlotLabel } from "@/lib/pieces";
+import { PIECE_ITEM_NAMES, pieceForSlug, piecePath, pieceSlotLabel } from "@/lib/pieces";
 import { createPiecePageMetadata } from "@/lib/seo";
 import { getJson, getPieceStats, PIECE_REVALIDATE_SECONDS } from "@/lib/serverFetch";
 import StatsSummary from "@/components/auctions/StatsSummary";
@@ -14,14 +14,15 @@ import { PieceSection } from "@/components/pieces/PieceSection";
 
 // Must be a literal for Next; keep in step with PIECE_REVALIDATE_SECONDS.
 export const revalidate = 600;
-export const dynamicParams = false;
 
 type Props = {
   params: Promise<{ slug: string }>;
 };
 
+// Empty on purpose: the build can't reach the API, so prerendered pages would ship
+// without market data. Each page renders on its first request, then caches.
 export function generateStaticParams() {
-  return PIECE_INDEXES.map((piece) => ({ slug: PIECE_SLUGS[piece] }));
+  return [];
 }
 
 async function resolvePiece(params: Props["params"]) {
