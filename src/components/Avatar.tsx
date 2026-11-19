@@ -24,13 +24,15 @@ export function Avatar({ user, size = "md", alt }: AvatarProps) {
   // Discord's default avatar index for the new username system.
   const defaultIndex = Number(BigInt(user.discord_id) >> BigInt(22)) % 6;
   const src = user.avatar_hash
-    ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar_hash}.png?size=${cdn}`
+    ? `https://cdn.discordapp.com/avatars/${user.discord_id}/${user.avatar_hash}.webp?size=${cdn}`
     : `https://cdn.discordapp.com/embed/avatars/${defaultIndex}.png`;
 
   return (
     <img
       src={src}
       alt={alt ?? user.username}
+      loading="lazy"
+      decoding="async"
       className={`${className} rounded-full`}
     />
   );
