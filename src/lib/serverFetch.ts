@@ -1,8 +1,7 @@
 import { cache } from "react";
 import { env } from "@/lib/env";
 import type { PieceIndex } from "@/lib/pieces";
-import type { ActiveAuctionListResponse, AuctionFilters, AuctionStats } from "@/types/auction";
-import { auctionQuery } from "@/lib/api/auctions";
+import type { AuctionStats } from "@/types/auction";
 import type { HexAuctionStats, HexInfo, HexOwnersPage, HexSalesPage } from "@/types/hex";
 import { SALES_PAGE_SIZE } from "@/lib/api/hex";
 
@@ -44,16 +43,6 @@ export const getHexAuctionStats = (hexcode: string) =>
 
 export const getHexSales = (hexcode: string) =>
   getJson<HexSalesPage>(`/hex/${hexcode}/sales?limit=${SALES_PAGE_SIZE}&offset=0`, 300);
-
-const AUCTIONS_REVALIDATE_SECONDS = 15;
-
-export const getActiveAuctions = (params: AuctionFilters) =>
-  getJson<ActiveAuctionListResponse>(
-    `/auctions/active${auctionQuery(params)}`,
-    AUCTIONS_REVALIDATE_SECONDS
-  );
-
-export const getAuctionSets = () => getJson<string[]>("/auctions/sets", 300);
 
 export const PIECE_REVALIDATE_SECONDS = 600;
 

@@ -1,15 +1,3 @@
-import type { AuctionFilters } from "@/types/auction";
-
-export const PAGE_LIMIT = 48;
-
-/** The page's opening view, which the server renders. */
-export const DEFAULT_ACTIVE_FILTERS = {
-  limit: PAGE_LIMIT,
-  include_dyes: true,
-  sort_by: "timeleft",
-  sort_order: "asc",
-} as const satisfies AuctionFilters;
-
 export const TIER_OPTIONS = [
   { value: "", label: "All Tiers" },
   { value: "t1", label: "T1" },
