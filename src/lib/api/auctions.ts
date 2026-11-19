@@ -8,7 +8,7 @@ import type {
 } from "@/types/auction";
 import { request, toQuery } from "./client";
 
-function auctionQuery(params: AuctionFilters): string {
+export function auctionQuery(params: AuctionFilters): string {
   return toQuery({
     skip: params.skip,
     limit: params.limit,

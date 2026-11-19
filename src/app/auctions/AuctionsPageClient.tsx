@@ -6,7 +6,14 @@ import { mapResult, type ApiResult } from "@/lib/apiResult";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import type { RecentBid } from "@/types/auction";
-import type { ActiveAuction, EndedAuction, AuctionFilters as AuctionFiltersParams, AuctionStats } from "@/types/auction";
+import type {
+  ActiveAuction,
+  ActiveAuctionListResponse,
+  EndedAuction,
+  AuctionFilters as AuctionFiltersParams,
+  AuctionStats,
+} from "@/types/auction";
+import { DEFAULT_ACTIVE_FILTERS, PAGE_LIMIT } from "./constants";
 import AuctionsGrid from "./AuctionsGrid";
 import AuctionFilters from "./AuctionFilters";
 import RecentBidsFeed from "./RecentBidsFeed";
@@ -27,9 +34,14 @@ type TabData =
   | { tab: "stats"; stats: AuctionStats; total: number };
 
 const NO_SETS: string[] = [];
-const PAGE_LIMIT = 48;
 
-export default function AuctionsPage() {
+interface AuctionsPageClientProps {
+  /** Server-rendered results for DEFAULT_ACTIVE_FILTERS; null makes the client fetch them. */
+  initialActive: ActiveAuctionListResponse | null;
+  initialSets: string[] | null;
+}
+
+export default function AuctionsPageClient({ initialActive, initialSets }: AuctionsPageClientProps) {
   const [tab, setTab] = useState<Tab>("active");
   const [selectedPieces, setSelectedPieces] = useState<PieceIndex[]>([]);
   const [binFilter, setBinFilter] = useState<BinFilter>("all");
@@ -37,11 +49,11 @@ export default function AuctionsPage() {
   const [setName, setSetName] = useState("");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [sortBy, setSortBy] = useState("timeleft");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
-  const [includeDyes, setIncludeDyes] = useState(true);
+  const [sortBy, setSortBy] = useState<string>(DEFAULT_ACTIVE_FILTERS.sort_by);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">(DEFAULT_ACTIVE_FILTERS.sort_order);
+  const [includeDyes, setIncludeDyes] = useState<boolean>(DEFAULT_ACTIVE_FILTERS.include_dyes);
 
-  const { state: setsState } = useAsyncData(fetchAuctionSets, []);
+  const { state: setsState } = useAsyncData(fetchAuctionSets, [], true, initialSets ?? undefined);
   const availableSets = setsState.status === "success" ? setsState.data : NO_SETS;
 
   // Each tab supports a different sort set, so the selection is corrected on
@@ -110,10 +122,12 @@ export default function AuctionsPage() {
     }));
   }
 
-  const { state } = useAsyncData(loadTab, [
-    tab, selectedPieces, binFilter, tier, setName,
-    minPrice, maxPrice, effectiveSort, includeDyes,
-  ]);
+  const { state } = useAsyncData(
+    loadTab,
+    [tab, selectedPieces, binFilter, tier, setName, minPrice, maxPrice, effectiveSort, includeDyes],
+    true,
+    initialActive ? { tab: "active", ...initialActive } : undefined
+  );
 
   const total = state.status === "success" ? state.data.total : 0;
 
