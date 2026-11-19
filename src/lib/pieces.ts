@@ -14,3 +14,19 @@ export const PIECE_ITEM_NAMES = [
   "Satin Trousers",
   "Oxford Shoes",
 ] as const;
+
+/** URL slugs for /pieces/[slug], indexed by PieceIndex. */
+export const PIECE_SLUGS = PIECE_ITEM_NAMES.map((name) => name.toLowerCase().replace(/ /g, "-"));
+
+export function piecePath(piece: PieceIndex): string {
+  return `/pieces/${PIECE_SLUGS[piece]}`;
+}
+
+export function pieceForSlug(slug: string): PieceIndex | null {
+  const index = PIECE_SLUGS.indexOf(slug);
+  return index === -1 ? null : (index as PieceIndex);
+}
+
+export function pieceSlotLabel(piece: PieceIndex): string {
+  return `Seymour ${PIECE_SLOT_NAMES[piece].toLowerCase()}`;
+}

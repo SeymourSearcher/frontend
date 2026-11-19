@@ -1,6 +1,8 @@
 import { cache } from "react";
 import { env } from "@/lib/env";
-import type { HexInfo } from "@/types/hex";
+import type { PieceIndex } from "@/lib/pieces";
+import type { AuctionStats } from "@/types/auction";
+import type { HexInfo, HexOwnersPage } from "@/types/hex";
 
 const TIMEOUT_MS = 5000;
 
@@ -27,5 +29,15 @@ export async function getJson<T>(path: string, revalidate: number): Promise<T | 
 }
 
 // cache() because a fetch with a signal skips Next's per-render dedupe, and both
-// generateMetadata and the page read this.
+// generateMetadata and the page read these.
 export const getHexInfo = cache((hexcode: string) => getJson<HexInfo>(`/hex/${hexcode}`, 300));
+
+export const getHexOwners = cache((hexcode: string) =>
+  getJson<HexOwnersPage>(`/hex/${hexcode}/owners?limit=1`, 300)
+);
+
+export const PIECE_REVALIDATE_SECONDS = 600;
+
+export const getPieceStats = cache((piece: PieceIndex) =>
+  getJson<AuctionStats>(`/auctions/stats?pieces=${piece}`, PIECE_REVALIDATE_SECONDS)
+);

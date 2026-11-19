@@ -4,8 +4,20 @@ import type { NextConfig } from "next";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const connectSrc = ["'self'", API_URL].filter(Boolean).join(" ");
 
+const FRONTEND_URL = new URL(process.env.NEXT_PUBLIC_FRONTEND_URL || "http://localhost:3000");
+
 const nextConfig: NextConfig = {
   output: 'standalone',
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: `www.${FRONTEND_URL.hostname}` }],
+        destination: `${FRONTEND_URL.origin}/:path*`,
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     const securityHeaders = [
       {

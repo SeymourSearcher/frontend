@@ -1,3 +1,7 @@
+import Link from "next/link";
+
+import { PIECE_INDEXES, PIECE_ITEM_NAMES, piecePath } from "@/lib/pieces";
+
 export interface FAQItem {
   question: string;
   answer: React.ReactNode;
@@ -14,10 +18,13 @@ export const FAQ_DATA: FAQItem[] = [
           Seymour pieces spawn with a randomly generated hex code (color). There are 4 pieces:
         </p>
         <ul className="list-disc pl-6 mt-2 space-y-1">
-          <li>Velvet Top Hat</li>
-          <li>Cashmere Jacket</li>
-          <li>Satin Trousers</li>
-          <li>Oxford Shoes</li>
+          {PIECE_INDEXES.map((piece) => (
+            <li key={piece}>
+              <Link href={piecePath(piece)} className="text-[#5865F2] no-underline hover:underline">
+                {PIECE_ITEM_NAMES[piece]}
+              </Link>
+            </li>
+          ))}
         </ul>
       </>
     ),

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { isValidHex } from "@/lib/hex";
-import { createHexPageMetadata } from "@/lib/seo";
-import { getHexInfo } from "@/lib/serverFetch";
+import { createHexPageMetadata, isHexIndexable } from "@/lib/seo";
+import { getHexInfo, getHexOwners } from "@/lib/serverFetch";
 import { HexPageClient } from "./HexPageClient";
 
 type Props = {
@@ -18,7 +18,10 @@ async function resolveHex(params: Props["params"]): Promise<{ raw: string; hex: 
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { hex } = await resolveHex(params);
-  return createHexPageMetadata(hex, await getHexInfo(hex));
+  const info = await getHexInfo(hex);
+  // Skipped for catalog colours, which are indexable regardless of owners.
+  const owners = info?.exact_match ? null : await getHexOwners(hex);
+  return createHexPageMetadata(hex, info, isHexIndexable(info, owners));
 }
 
 export default async function HexPage({ params }: Props) {

@@ -2,7 +2,9 @@ import { Metadata } from "next";
 
 import { env } from "@/lib/env";
 import { formatPrice } from "@/lib/format";
-import type { HexInfo } from "@/types/hex";
+import { PIECE_ITEM_NAMES, type PieceIndex, piecePath, pieceSlotLabel } from "@/lib/pieces";
+import type { AuctionStats } from "@/types/auction";
+import type { HexInfo, HexOwnersPage } from "@/types/hex";
 
 const BASE_URL = env.frontendUrl;
 
@@ -142,12 +144,44 @@ function describeHex(hexcode: string, info: HexInfo | null): string {
   return `${match}${price} Owners, recent auctions and close matches for this Seymour armor colour on Hypixel Skyblock.`;
 }
 
+/**
+ * Only catalog colours and colours someone owns exactly are worth indexing; the
+ * other ~16.7M hex pages are thin. A failed fetch counts as indexable so an API
+ * outage never deindexes real pages. Owners come sorted by ΔE ascending, with
+ * ΔE rounded to 2dp.
+ */
+export function isHexIndexable(info: HexInfo | null, owners: HexOwnersPage | null): boolean {
+  if (!info || info.exact_match) return true;
+  if (!owners) return true;
+  return (owners.items[0]?.delta_e ?? Infinity) < 0.001;
+}
+
 /** `info` is the unfiltered hex lookup, or null when the API could not serve it. */
-export function createHexPageMetadata(hexcode: string, info: HexInfo | null): Metadata {
+export function createHexPageMetadata(
+  hexcode: string,
+  info: HexInfo | null,
+  indexable: boolean
+): Metadata {
   const exact = info?.exact_match;
+  return {
+    ...createMetadata({
+      title: exact ? `#${hexcode} ${exact.target_name}` : `#${hexcode} Seymour Armor`,
+      description: describeHex(hexcode, info),
+      path: `/hex/${hexcode}`,
+    }),
+    ...(!indexable && { robots: { index: false, follow: true } }),
+  };
+}
+
+export function createPiecePageMetadata(piece: PieceIndex, stats: AuctionStats | null): Metadata {
+  const name = PIECE_ITEM_NAMES[piece];
+  const price =
+    stats && stats.total > 0
+      ? ` Median sale ${formatPrice(Math.round(stats.median_price))} across ${stats.total.toLocaleString("en-US")} recorded sales.`
+      : "";
   return createMetadata({
-    title: exact ? `#${hexcode} ${exact.target_name}` : `#${hexcode} Seymour Armor`,
-    description: describeHex(hexcode, info),
-    path: `/hex/${hexcode}`,
+    title: `${name} Prices & Rare Colours`,
+    description: `${name} (${pieceSlotLabel(piece)}) prices on Hypixel SkyBlock.${price} Cheapest live listings, highest sales and colour tiers.`,
+    path: piecePath(piece),
   });
 }
