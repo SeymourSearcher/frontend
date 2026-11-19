@@ -1,13 +1,11 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState } from "react";
 import { useSeymours } from "@/hooks/useSeymours";
 import { useCollectionValue } from "@/hooks/useCollectionValue";
 import { useSellMode } from "@/hooks/useSellMode";
-import { formatPrice } from "@/lib/format";
-import type { CategoryValues, CollectionValue, FilterType } from "@/types/seymour";
+import { useUserSeymourHexes } from "@/hooks/useUserSeymourHexes";
 import { useAuth } from "@/contexts/AuthContext";
-import { fetchUserSeymourHexes } from "@/lib/api";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import SeymourCard from "./SeymourCard";
 import SeymourChip from "./SeymourChip";
@@ -18,48 +16,7 @@ import SellActionBar from "./SellActionBar";
 import VisualizeModal from "./VisualizeModal";
 import LoggedOutPreview from "./LoggedOutPreview";
 import { RemoveMyData } from "./RemoveMyData";
-import { PieceIndex } from "@/lib/pieces";
-
-/** Chips whose key is also a category in the valuation payload. Custom is absent
- *  by design — see backend/app/services/collection_value.py. */
-function chipValue(key: FilterType, value: CollectionValue | null): string {
-  if (!value || key === "all" || key === "custom") return "";
-  const amount = value.categories[key as keyof CategoryValues];
-  return amount ? formatPrice(amount) : "";
-}
-
-/** `total` is null until /stats/me lands. The paragraph still renders, empty:
- *  mounting it on arrival pushed the chips, the dropdown and the grid down. */
-function CollectionSummary({
-  total,
-  value,
-}: {
-  total: number | null;
-  value: CollectionValue | null;
-}) {
-  return (
-    <p
-      className="text-[#888] text-center mb-4 text-[12px] min-h-[18px]"
-      // Always present, not only when something is unpriced: the overlap is the
-      // part a reader would otherwise assume away by adding the chips up.
-      title="Estimated from median sale prices of each colour's nearest catalog match, at its own tier. Per-chip figures overlap — one item can be a Star and T1 and part of a set — so they do not sum to the total."
-    >
-      {total !== null && `Total: ${total}`}
-      {value && value.priced > 0 && (
-        <>
-          {" · est. "}
-          <span className="text-green-400">{formatPrice(value.total)}</span>
-          {value.unpriced > 0 && (
-            <span className="text-[#666]">
-              {" "}
-              from {value.priced} priced
-            </span>
-          )}
-        </>
-      )}
-    </p>
-  );
-}
+import { CollectionSummary, chipValue } from "./CollectionSummary";
 
 export default function ItemsPage() {
   const { user, loading: authLoading } = useAuth();
@@ -108,30 +65,15 @@ export default function ItemsPage() {
     setPrice,
     isSubmitting,
     error,
-    setError,
     successCount,
     dismissSuccess,
     submitSellOrders,
   } = useSellMode();
 
   const [showVisualizeModal, setShowVisualizeModal] = useState(false);
-  const [userSeymours, setUserSeymours] = useState<[string, PieceIndex][]>([]);
-
   // Only the modal reads these, so the request waits for it to open rather than
   // competing on load with the three calls the page actually renders from.
-  const hexesRequested = useRef(false);
-  useEffect(() => {
-    if (!isAuthed || !showVisualizeModal || hexesRequested.current) return;
-    hexesRequested.current = true;
-    fetchUserSeymourHexes().then((result) => {
-      if (result.ok) setUserSeymours(result.data);
-    });
-  }, [isAuthed, showVisualizeModal]);
-
-  const userHexes = useMemo(
-    () => [...new Set(userSeymours.map(([hex]) => hex))],
-    [userSeymours]
-  );
+  const userHexes = useUserSeymourHexes(isAuthed && showVisualizeModal);
 
   const mainClasses = `min-h-screen bg-[#121212] p-6 font-['MinecraftSeven',Arial,sans-serif] ${sellMode ? "pb-24" : ""}`;
 
@@ -337,7 +279,13 @@ export default function ItemsPage() {
         <RemoveMyData total={stats.total_seymours} onRemoved={reload} />
       )}
 
-      <VisualizeModal isOpen={showVisualizeModal} onClose={() => setShowVisualizeModal(false)} userHexes={userHexes} userSeymours={userSeymours} />
+      <VisualizeModal
+        isOpen={showVisualizeModal}
+        onClose={() => setShowVisualizeModal(false)}
+        userHexes={userHexes.hexes}
+        userSeymours={userHexes.seymours}
+        userHexesReady={userHexes.ready}
+      />
     </main>
   );
 }

@@ -12,9 +12,16 @@ interface Props {
   onClose: () => void;
   userHexes?: string[];
   userSeymours?: [string, PieceIndex][];
+  userHexesReady: boolean;
 }
 
-export default function VisualizeModal({ isOpen, onClose, userHexes = [], userSeymours = [] }: Props) {
+export default function VisualizeModal({
+  isOpen,
+  onClose,
+  userHexes = [],
+  userSeymours = [],
+  userHexesReady,
+}: Props) {
   const [hexMode, setHexMode] = useState<HexMode>("my");
   const [includeDyes, setIncludeDyes] = useState(true);
   const [respectPiece, setRespectPiece] = useState(true);
@@ -78,7 +85,9 @@ export default function VisualizeModal({ isOpen, onClose, userHexes = [], userSe
   if (!isOpen) return null;
 
   const hasUserHexes = userHexes.length > 0;
-  const inputCount = hexMode === "my" 
+  // Without inputs the request silently becomes the full-RGB one, labelled as yours.
+  const waitingForHexes = hexMode === "my" && !hasUserHexes;
+  const inputCount = hexMode === "my"
     ? (respectPiece ? userSeymours.length : userHexes.length)
     : null;
 
@@ -164,10 +173,16 @@ export default function VisualizeModal({ isOpen, onClose, userHexes = [], userSe
 
           <button
             onClick={handlePreview}
-            disabled={loading}
-            className="w-full bg-[#333] hover:bg-[#444] text-[#ccc] py-2 rounded text-[12px] disabled:opacity-50"
+            disabled={loading || waitingForHexes}
+            className="w-full bg-[#333] hover:bg-[#444] text-[#ccc] py-2 rounded text-[12px] disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? "Calculating..." : "Calculate Stats"}
+            {loading
+              ? "Calculating..."
+              : waitingForHexes
+                ? userHexesReady
+                  ? "No seymours to visualize"
+                  : "Loading your hexes..."
+                : "Calculate Stats"}
           </button>
 
           {error && <p className="text-red-400 text-[12px]">{error}</p>}

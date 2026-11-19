@@ -11,7 +11,7 @@ interface BuyOrdersGridProps {
   orders: BuyOrder[];
   myOrders: BuyOrder[];
   fillableOrders: FillableOrder[];
-  onCancelOrder: (orderId: number) => void;
+  onCancelOrder: (orderId: number) => Promise<string | null>;
 }
 
 export default function BuyOrdersGrid({

@@ -2,8 +2,10 @@
 
 import { useState, useCallback } from "react";
 import { createSellOrders } from "@/lib/api";
+import { useCollectionVersion } from "@/contexts/CollectionVersionContext";
 
 export function useSellMode() {
+  const { bump } = useCollectionVersion();
   const [sellMode, setSellMode] = useState(false);
   const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [price, setPrice] = useState<string>("");
@@ -71,8 +73,9 @@ export function useSellMode() {
     setSelectedIds(new Set());
     setPrice("");
     setSellMode(false);
+    bump();
     return true;
-  }, [price, selectedIds]);
+  }, [price, selectedIds, bump]);
 
   const dismissSuccess = useCallback(() => {
     setSuccessCount(null);

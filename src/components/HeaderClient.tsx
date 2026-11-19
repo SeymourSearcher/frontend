@@ -1,11 +1,11 @@
 "use client";
 
-import { useRef, useState, lazy, Suspense } from "react";
+import { useState, lazy, Suspense } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
-import { uploadSeymours } from "@/lib/api";
 import { HexSearchInput } from "./HexSearchInput";
+import { UploadButton } from "./UploadButton";
 import DiscordIcon from "./icons/DiscordIcon";
 
 const LoginPromptModal = lazy(() =>
@@ -39,25 +39,15 @@ function HeaderSearch({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 export function HeaderClient() {
-  const { user, loading, login, logout } = useAuth();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { user, loading, login, logout, sessionExpired, dismissSessionExpired } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
   // The homepage hero already owns a search box; two on screen reads as a bug.
   const showSearch = usePathname() !== "/";
 
-  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    const result = await uploadSeymours(file);
-    if (result.ok) {
-      alert(`Imported ${result.data.imported} seymours (${result.data.skipped} skipped)`);
-    } else {
-      alert(`Upload failed: ${result.detail}`);
-    }
-
-    e.target.value = "";
+  function closeLoginPrompt() {
+    setShowLoginPrompt(false);
+    dismissSessionExpired();
   }
 
   return (
@@ -95,18 +85,9 @@ export function HeaderClient() {
 
         <div className="flex items-center gap-4 max-[980px]:hidden">
           {showSearch && <HeaderSearch />}
-          <button
-            onClick={() => user ? fileInputRef.current?.click() : setShowLoginPrompt(true)}
+          <UploadButton
+            onRequireLogin={() => setShowLoginPrompt(true)}
             className="text-[#ccc] no-underline text-[14px] p-[6px_10px] rounded-[6px] transition-[background] duration-300 hover:bg-[#333] bg-transparent border-none cursor-pointer font-['MinecraftSeven',Arial,sans-serif]"
-          >
-            Upload
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            onChange={handleFileChange}
-            className="hidden"
-            accept=".txt,.json"
           />
           {!loading && (user ? (
             <>
@@ -170,7 +151,14 @@ export function HeaderClient() {
           )
         )}
 
-        <div className="mt-auto mb-[65px]">
+        <div className="mt-auto mb-[65px] flex flex-col items-start">
+          <UploadButton
+            onRequireLogin={() => {
+              setShowLoginPrompt(true);
+              setMenuOpen(false);
+            }}
+            className="block w-full text-left text-[#ccc] text-[14px] p-[6px_10px] rounded hover:bg-[#333] bg-transparent border-none cursor-pointer font-['MinecraftSeven',Arial,sans-serif]"
+          />
           {!loading && (user ? (
             <>
               <span className="block text-[#ccc] text-[14px] p-[6px_10px]">{user.username}</span>
@@ -199,9 +187,12 @@ export function HeaderClient() {
         </div>
       </aside>
 
-      {showLoginPrompt && (
+      {(showLoginPrompt || sessionExpired) && (
         <Suspense fallback={null}>
-          <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />
+          <LoginPromptModal
+            onClose={closeLoginPrompt}
+            message={sessionExpired ? "Your session expired. Log in again to continue." : undefined}
+          />
         </Suspense>
       )}
     </>

@@ -12,7 +12,8 @@ import { INPUT_CLASS, LABEL_CLASS } from "./formStyles";
 interface CreateOrderFormProps {
   sets: string[];
   setPieces: Record<string, PieceIndex[]>;
-  onSubmit: (data: BuyOrderCreate) => Promise<void>;
+  /** Resolves to one error message (or null on success) per order. */
+  onSubmit: (orders: BuyOrderCreate[]) => Promise<(string | null)[]>;
   onClose: () => void;
 }
 
@@ -77,16 +78,27 @@ export default function CreateOrderForm({
     }
 
     setSubmitting(true);
-    try {
-      for (const order of result.orders) {
-        await onSubmit(order);
-      }
+    const errors = await onSubmit(result.orders);
+    setSubmitting(false);
+
+    const failed = result.orders.filter((_, i) => errors[i] !== null);
+    if (failed.length === 0) {
       onClose();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to create order");
-    } finally {
-      setSubmitting(false);
+      return;
     }
+    const firstError = errors.find((e) => e !== null);
+    if (failed.length === result.orders.length) {
+      setError(firstError ?? "Failed to create order");
+      return;
+    }
+    // Only multi-piece hex orders can partly fail; keep just the failed pieces so a retry can't duplicate.
+    setHexPieceTypes(
+      failed.flatMap((o) => (o.hex_criteria?.piece_type != null ? [o.hex_criteria.piece_type] : []))
+    );
+    setError(
+      `Created ${result.orders.length - failed.length} of ${result.orders.length} orders. ` +
+        `${failed.length} failed: ${firstError}. The failed pieces are still selected.`
+    );
   }
 
   return (

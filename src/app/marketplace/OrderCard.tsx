@@ -1,5 +1,5 @@
 import { BuyOrder, OrderType, OrderStatus } from "@/types/marketplace";
-import CancelOrderButton from "./CancelOrderButton";
+import CancelOrderButton, { type CancelHandler } from "./CancelOrderButton";
 import DiscordUserLink from "./DiscordUserLink";
 import OrderCardFooter from "./OrderCardFooter";
 import OrderCriteria from "./OrderCriteria";
@@ -10,7 +10,7 @@ import OrderTypeBadge from "./OrderTypeBadge";
 interface OrderCardProps {
   order: BuyOrder;
   isOwn?: boolean;
-  onCancel?: () => void;
+  onCancel?: CancelHandler;
 }
 
 export default function OrderCard({ order, isOwn, onCancel }: OrderCardProps) {

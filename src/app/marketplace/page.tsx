@@ -8,19 +8,16 @@ import {
   fetchFillableOrders,
   fetchSellOrders,
   fetchMySellOrders,
-  createOrder,
-  cancelOrder,
-  cancelSellOrder,
   fetchAvailableSets,
   fetchSetsPieces,
 } from "@/lib/api";
 import { dataOr, mapResult, type ApiResult } from "@/lib/apiResult";
 import { useAsyncData } from "@/hooks/useAsyncData";
+import { useCollectionVersion } from "@/contexts/CollectionVersionContext";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import {
   BuyOrder,
   OrderType,
-  BuyOrderCreate,
   FillableOrder,
   SortBy,
   SortOrder,
@@ -36,10 +33,8 @@ import SellOrdersGrid from "./SellOrdersGrid";
 import { PieceIndex } from "@/lib/pieces";
 import { ModeToggle, OrderMode } from "./ModeToggle";
 import { SeymourPickerModal } from "./SeymourPickerModal";
-import { TabButton } from "@/components/ui/TabButton";
-
-type BuyTab = "all" | "mine" | "fillable";
-type SellTab = "all" | "mine";
+import { MarketplaceTabs, type BuyTab, type SellTab } from "./MarketplaceTabs";
+import { useOrderMutations } from "./useOrderMutations";
 
 /** Tagged by view, so one tab's results can never be rendered under another. */
 type ViewData =
@@ -75,6 +70,8 @@ export default function MarketplacePage() {
   const [sellSortBy, setSellSortBy] = useState<SortBy>("delta_e");
   const [sellSortOrder, setSellSortOrder] = useState<SortOrder>("asc");
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
+  const { version } = useCollectionVersion();
+  const { createBuyOrders, cancelBuyOrder, cancelSellOrder } = useOrderMutations();
 
   useEffect(() => {
     Promise.all([fetchAvailableSets(), fetchSetsPieces()]).then(
@@ -149,28 +146,13 @@ export default function MarketplacePage() {
     return Promise.resolve({ ok: true, data: { view: "none" } });
   }
 
-  const { state, reload } = useAsyncData(loadCurrentView, [
-    user, mode, buyTab, sellTab,
+  const { state } = useAsyncData(loadCurrentView, [
+    user, mode, buyTab, sellTab, version,
     filterType, filterSet, filterTier, filterPieces, buySortBy, buySortOrder,
     sellFilterPiece, sellSortBy, sellSortOrder,
   ]);
 
   const view = state.status === "success" ? state.data : null;
-
-  async function handleCreateOrder(data: BuyOrderCreate) {
-    const result = await createOrder(data);
-    // CreateOrderForm surfaces the message from a thrown error.
-    if (!result.ok) throw new Error(result.detail);
-    reload();
-  }
-
-  async function handleCancelOrder(orderId: number) {
-    if ((await cancelOrder(orderId)).ok) reload();
-  }
-
-  async function handleCancelSellOrder(orderId: number) {
-    if ((await cancelSellOrder(orderId)).ok) reload();
-  }
 
   function handleTabClick(tab: BuyTab | SellTab, requiresAuth: boolean) {
     if (requiresAuth && !user) {
@@ -194,45 +176,12 @@ export default function MarketplacePage() {
 
           <div className="h-4 w-px bg-[#333]" />
 
-          <div className="flex gap-1">
-            {mode === "buy" ? (
-              <>
-                <TabButton size="compact" active={buyTab === "all"} onClick={() => handleTabClick("all", false)}>
-                  All
-                </TabButton>
-                <TabButton
-                  size="compact"
-                  active={buyTab === "mine"}
-                  onClick={() => handleTabClick("mine", true)}
-                  disabled={!user}
-                >
-                  Mine
-                </TabButton>
-                <TabButton
-                  size="compact"
-                  active={buyTab === "fillable"}
-                  onClick={() => handleTabClick("fillable", true)}
-                  disabled={!user}
-                >
-                  Fillable
-                </TabButton>
-              </>
-            ) : (
-              <>
-                <TabButton size="compact" active={sellTab === "all"} onClick={() => handleTabClick("all", false)}>
-                  All
-                </TabButton>
-                <TabButton
-                  size="compact"
-                  active={sellTab === "mine"}
-                  onClick={() => handleTabClick("mine", true)}
-                  disabled={!user}
-                >
-                  Mine
-                </TabButton>
-              </>
-            )}
-          </div>
+          <MarketplaceTabs
+            mode={mode}
+            activeTab={mode === "buy" ? buyTab : sellTab}
+            signedIn={!!user}
+            onTabClick={handleTabClick}
+          />
 
           <div className="flex-1" />
 
@@ -297,14 +246,14 @@ export default function MarketplacePage() {
             orders={view?.view === "orders" ? view.orders : NO_BUY_ORDERS}
             myOrders={view?.view === "myOrders" ? view.orders : NO_BUY_ORDERS}
             fillableOrders={view?.view === "fillable" ? view.orders : NO_FILLABLE_ORDERS}
-            onCancelOrder={handleCancelOrder}
+            onCancelOrder={cancelBuyOrder}
           />
         ) : (
           <SellOrdersGrid
             tab={sellTab}
             sellOrders={view?.view === "sellOrders" ? view.orders : NO_SELL_ORDERS}
             mySellOrders={view?.view === "mySellOrders" ? view.orders : NO_SELL_ORDERS}
-            onCancelOrder={handleCancelSellOrder}
+            onCancelOrder={cancelSellOrder}
           />
         )}
       </div>
@@ -313,18 +262,13 @@ export default function MarketplacePage() {
         <CreateOrderForm
           sets={sets}
           setPieces={setPieces}
-          onSubmit={handleCreateOrder}
+          onSubmit={createBuyOrders}
           onClose={() => setShowCreateForm(false)}
         />
       )}
 
       {showSeymourPicker && (
-        <SeymourPickerModal
-          onClose={() => {
-            setShowSeymourPicker(false);
-            reload();
-          }}
-        />
+        <SeymourPickerModal onClose={() => setShowSeymourPicker(false)} />
       )}
 
       {showLoginPrompt && <LoginPromptModal onClose={() => setShowLoginPrompt(false)} />}

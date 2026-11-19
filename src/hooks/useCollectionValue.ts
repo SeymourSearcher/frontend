@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fetchCollectionValue } from "@/lib/api";
+import { useCollectionVersion } from "@/contexts/CollectionVersionContext";
 import type { CollectionValue } from "@/types/seymour";
 
 /**
@@ -13,12 +14,10 @@ import type { CollectionValue } from "@/types/seymour";
  */
 export function useCollectionValue(enabled: boolean, includeDyes = false) {
   const [value, setValue] = useState<CollectionValue | null>(null);
+  const { version } = useCollectionVersion();
 
   useEffect(() => {
-    if (!enabled) {
-      setValue(null);
-      return;
-    }
+    if (!enabled) return;
 
     let current = true;
     fetchCollectionValue(includeDyes).then((result) => {
@@ -27,7 +26,7 @@ export function useCollectionValue(enabled: boolean, includeDyes = false) {
     return () => {
       current = false;
     };
-  }, [enabled, includeDyes]);
+  }, [enabled, includeDyes, version]);
 
-  return value;
+  return enabled ? value : null;
 }

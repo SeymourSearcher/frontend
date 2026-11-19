@@ -3,11 +3,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fetchUserSeymours, fetchUserStats, fetchSubFilters } from "@/lib/api";
 import { useAsyncData } from "@/hooks/useAsyncData";
+import { useCollectionVersion } from "@/contexts/CollectionVersionContext";
 import { Seymour, FilterType, SubFilterOption } from "@/types/seymour";
 import { Stats } from "@/types/stats";
 
 // Stable identity, so the memos below don't recompute on every non-success render.
 const EMPTY_SEYMOURS: Seymour[] = [];
+const EMPTY_SUB_FILTERS: SubFilterOption[] = [];
 
 const FILTERS: { key: FilterType; label: string; hasSubFilter: boolean }[] = [
   { key: "all", label: "All", hasSubFilter: true },
@@ -35,9 +37,7 @@ export function useSeymours(enabled = true) {
   const [incompleteOnly, setIncompleteOnly] = useState(false);
   const [includeDyes, setIncludeDyes] = useState(false);
   const [sortDirection, setSortDirection] = useState<SortDirection | null>(null);
-  // Bumped to re-run the two user-scoped fetches after something changes the
-  // collection out from under them; no filter state moves, so nothing else would.
-  const [version, setVersion] = useState(0);
+  const { version, bump } = useCollectionVersion();
 
   const currentFilterConfig = FILTERS.find(f => f.key === filter);
   const hasSubFilter = currentFilterConfig?.hasSubFilter ?? false;
@@ -85,10 +85,7 @@ export function useSeymours(enabled = true) {
   // sub-filter keep it untouched so switching through one is not a reset -- the
   // backend ignores sub_filter for those.
   useEffect(() => {
-    if (!hasSubFilter) {
-      setAvailableSubFilters([]);
-      return;
-    }
+    if (!enabled || !hasSubFilter) return;
     fetchSubFilters(filter, incompleteOnly, includeDyes).then((result) => {
       const newFilters = result.ok ? result.data : [];
       const names = new Set(newFilters.map(o => o.name));
@@ -97,7 +94,7 @@ export function useSeymours(enabled = true) {
       setSelectedSubFilters(carried);
       setAllSelected(carried.length === 0);
     });
-  }, [filter, hasSubFilter, incompleteOnly, includeDyes]);
+  }, [enabled, filter, hasSubFilter, incompleteOnly, includeDyes, version]);
 
   const { state } = useAsyncData(
     () => fetchUserSeymours(
@@ -174,7 +171,7 @@ export function useSeymours(enabled = true) {
     toggleSubFilter,
     allSelected,
     toggleAllSelected,
-    availableSubFilters,
+    availableSubFilters: hasSubFilter ? availableSubFilters : EMPTY_SUB_FILTERS,
     loading: state.status === "loading",
     error: state.status === "error" ? state.detail : null,
     hasSubFilter,
@@ -192,6 +189,6 @@ export function useSeymours(enabled = true) {
     canIncludeDyes,
     sortDirection,
     toggleSort,
-    reload: () => setVersion((v) => v + 1),
+    reload: bump,
   };
 }

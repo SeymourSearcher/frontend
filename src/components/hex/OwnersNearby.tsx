@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { fetchHexOwners } from "@/lib/api";
+import { usePageResetOn } from "@/hooks/usePageResetOn";
 import type { HexOwnerMatch, HexOwnersPage } from "@/types/hex";
 import { PIECE_SLOT_NAMES, type PieceIndex } from "@/lib/pieces";
 import { useAsyncData } from "@/hooks/useAsyncData";
@@ -58,11 +58,9 @@ function Shell({ count, children }: { count: string; children: React.ReactNode }
 }
 
 export function OwnersNearby({ hexcode, pieces }: { hexcode: string; pieces: PieceIndex[] }) {
-  const [page, setPage] = useState(0);
   const pieceKey = pieces.join(",");
-
   // Narrowing the slots shortens the list, so a held offset could land past its end.
-  useEffect(() => setPage(0), [pieceKey]);
+  const [page, setPage] = usePageResetOn(pieceKey);
 
   const { state } = useAsyncData<HexOwnersPage>(
     () => fetchHexOwners(hexcode, PAGE_SIZE, page * PAGE_SIZE, pieces),

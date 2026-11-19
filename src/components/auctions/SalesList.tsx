@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useState, type DependencyList } from "react";
+import type { DependencyList } from "react";
 
 import type { ApiResult } from "@/lib/apiResult";
 import type { EndedAuction } from "@/types/auction";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
 import { formatPrice, formatTimestamp } from "@/lib/format";
 import { useAsyncData } from "@/hooks/useAsyncData";
+import { usePageResetOn } from "@/hooks/usePageResetOn";
 import { StatusMessage } from "@/components/ui/StatusMessage";
 import { MinecraftItem } from "@/components/ui/MinecraftItem";
 import { TIER_CONFIG, tierForDeltaE } from "@/components/hex/tierConfig";
@@ -76,11 +77,8 @@ export function SalesList<T extends EndedAuction>({
   deps,
   deltaE,
 }: SalesListProps<T>) {
-  const [page, setPage] = useState(0);
-
   // A held offset could otherwise land past the end of the reshaped list.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => setPage(0), deps);
+  const [page, setPage] = usePageResetOn(JSON.stringify(deps));
 
   const { state } = useAsyncData(
     () => fetchPage(SALES_PAGE_SIZE, page * SALES_PAGE_SIZE),

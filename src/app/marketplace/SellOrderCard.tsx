@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { SellOrder, OrderStatus } from "@/types/marketplace";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
-import CancelOrderButton from "./CancelOrderButton";
+import CancelOrderButton, { type CancelHandler } from "./CancelOrderButton";
 import DiscordUserLink from "./DiscordUserLink";
 import OrderCardFooter from "./OrderCardFooter";
 import OrderStatusBadge from "./OrderStatusBadge";
@@ -12,7 +12,7 @@ import { MinecraftItem } from "@/components/ui/MinecraftItem";
 interface SellOrderCardProps {
   order: SellOrder;
   isOwn?: boolean;
-  onCancel?: () => void;
+  onCancel?: CancelHandler;
 }
 
 export default function SellOrderCard({ order, isOwn, onCancel }: SellOrderCardProps) {

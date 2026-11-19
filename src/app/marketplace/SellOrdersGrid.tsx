@@ -9,7 +9,7 @@ interface SellOrdersGridProps {
   tab: SellTab;
   sellOrders: SellOrder[];
   mySellOrders: SellOrder[];
-  onCancelOrder: (orderId: number) => void;
+  onCancelOrder: (orderId: number) => Promise<string | null>;
 }
 
 export default function SellOrdersGrid({

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { HeaderClient } from "@/components/HeaderClient";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { CollectionVersionProvider } from "@/contexts/CollectionVersionContext";
 import { WebsiteJsonLd, OrganizationJsonLd } from "@/components/seo/JsonLd";
 import { siteConfig } from "@/lib/seo";
 
@@ -56,8 +57,10 @@ export default function RootLayout({
       </head>
       <body>
         <AuthProvider>
-          <HeaderClient />
-          <main>{children}</main>
+          <CollectionVersionProvider>
+            <HeaderClient />
+            <main>{children}</main>
+          </CollectionVersionProvider>
         </AuthProvider>
       </body>
     </html>
