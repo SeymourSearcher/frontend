@@ -42,7 +42,7 @@ export function PatternResultCard({ result }: { result: HexSearchResult }) {
   const shown = result.owners.slice(0, MAX_OWNERS);
 
   return (
-    <Link href={`/hex/${result.hex_code}`} className="block">
+    <Link href={`/hex/${result.hex_code}`} prefetch={false} className="block">
       <div
         className={`bg-[#1a1a1a] rounded-lg p-3 flex flex-col items-center hover:bg-[#252525] transition-colors cursor-pointer h-full ${
           result.owned_by_me ? "ring-1 ring-[#5865F2]" : ""

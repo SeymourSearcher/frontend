@@ -23,7 +23,7 @@ export default function SellOrderCard({ order, isOwn, onCancel }: SellOrderCardP
     <div className="bg-[#1a1a1a] rounded-lg p-4 hover:bg-[#252525] transition-colors relative">
       {isOwn && <OrderStatusBadge status={order.status} />}
 
-      <Link href={`/hex/${seymour.hex_color}`} className="flex items-center gap-3">
+      <Link href={`/hex/${seymour.hex_color}`} prefetch={false} className="flex items-center gap-3">
         <MinecraftItem piece={seymour.item_name} hex={seymour.hex_color} scale={3} />
         <div className="flex flex-col min-w-0">
           <span

@@ -47,7 +47,7 @@ export default function SeymourChip({ seymour, sellMode, isSelected, onSelect }:
   }
 
   return (
-    <Link href={`/hex/${seymour.hex_color}`} className="block">
+    <Link href={`/hex/${seymour.hex_color}`} prefetch={false} className="block">
       <div className={CHIP_CLASSES}>{body}</div>
     </Link>
   );

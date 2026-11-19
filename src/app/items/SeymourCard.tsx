@@ -50,7 +50,7 @@ export default function SeymourCard({ seymour, sellMode, isSelected, onSelect }:
   }
 
   return (
-    <Link href={`/hex/${seymour.hex_color}`} className="block">
+    <Link href={`/hex/${seymour.hex_color}`} prefetch={false} className="block">
       <div className={CARD_CLASSES}>{body}</div>
     </Link>
   );

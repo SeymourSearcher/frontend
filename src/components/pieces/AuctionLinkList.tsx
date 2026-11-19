@@ -15,7 +15,7 @@ function AuctionLinkRow({ auction }: { auction: ActiveAuction | EndedAuction }) 
 
   return (
     <li>
-      <Link href={`/hex/${auction.hex_color}`} className={ROW_CLASS}>
+      <Link href={`/hex/${auction.hex_color}`} prefetch={false} className={ROW_CLASS}>
         <ColorSwatch hex={auction.hex_color} size="md" />
         <span className="text-[11px] font-bold w-[70px]" style={{ color: `#${auction.hex_color}` }}>
           #{auction.hex_color}

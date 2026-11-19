@@ -58,6 +58,7 @@ export function CatalogMatchRow({ match, rank }: { match: HexMatch; rank: number
         </button>
         <Link
           href={`/hex/${match.target_hex}`}
+          prefetch={false}
           aria-label={`Search ${match.target_hex}`}
           className="text-[#555] hover:text-[#999] text-[14px] no-underline px-3 py-2"
         >

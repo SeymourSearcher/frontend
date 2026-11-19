@@ -20,6 +20,7 @@ function SaleChip({ sale, hidden }: { sale: EndedAuction; hidden?: boolean }) {
   return (
     <Link
       href={`/hex/${sale.hex_color}`}
+      prefetch={false}
       aria-hidden={hidden}
       tabIndex={hidden ? -1 : undefined}
       title={`${PIECE_SLOT_NAMES[sale.piece]} · #${sale.hex_color}${
