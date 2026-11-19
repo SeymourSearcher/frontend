@@ -7,7 +7,9 @@ type CatalogTarget = { hex: string; name: string };
 
 const CATALOG_REVALIDATE_SECONDS = 86_400;
 
-export const revalidate = 86_400;
+// Not prerendered: the build can't reach the internal API, and a sitemap frozen
+// without hex pages would stay that way. The catalog fetch itself is still cached.
+export const dynamic = "force-dynamic";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = siteConfig.url.replace(/\/$/, "");
