@@ -2,7 +2,7 @@
 
 The web app for Seymour Searcher, a collection tracker and marketplace for Seymour's Special Armor on Hypixel SkyBlock. Players sign in with Discord, upload their dyed armor pieces, see which sets their colours could complete, and trade pieces through buy and sell orders.
 
-Built with Next.js 16 (App Router), React 19 and TypeScript. All data comes from the [Seymour Searcher API](https://github.com/SeymourFinder/backend).
+Built with Next.js 16 (App Router), React 19 and TypeScript. All data comes from the [Seymour Searcher API](https://github.com/SeymourSearcher/backend).
 
 ## Pages
 
