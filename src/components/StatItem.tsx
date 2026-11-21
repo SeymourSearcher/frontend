@@ -41,7 +41,7 @@ export function StatItem({ label, value, duration = 500 }: StatItemProps) {
 
   return (
     <div className="flex flex-col items-center">
-      <span className="text-[14px]">{label}</span>
+      <span className="text-[14px] h-5 flex items-center">{label}</span>
       <span className="text-[14px]">{animatedValue.toLocaleString()}</span>
     </div>
   );

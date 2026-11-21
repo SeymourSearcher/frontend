@@ -20,6 +20,8 @@ interface HexSearchInputProps {
   placeholder?: string;
   inputClassName?: string;
   buttonClassName?: string;
+  /** Stretch to the container width so the input and button read as one bar. */
+  fullWidth?: boolean;
   /** Fired only on a real navigation, so a container can dismiss itself. */
   onNavigate?: () => void;
   children?: ReactNode;
@@ -34,6 +36,7 @@ export function HexSearchInput({
   placeholder = "hexcode or pattern...",
   inputClassName = "w-[280px] border border-[#666] bg-[#1a1a1a] text-[#eee] text-[14px] p-2 rounded-lg font-['MinecraftSeven',Arial,sans-serif] outline-none",
   buttonClassName = "bg-[#444] text-[#eee] border-none cursor-pointer text-[14px] p-2 rounded-lg font-['MinecraftSeven',Arial,sans-serif]",
+  fullWidth = false,
   onNavigate,
   children,
 }: HexSearchInputProps) {
@@ -65,8 +68,8 @@ export function HexSearchInput({
   const inputColor = colorizeInput ? partialColor ?? undefined : undefined;
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col items-center gap-2">
-      <div className="flex items-center gap-2">
+    <form onSubmit={handleSubmit} className={`flex flex-col items-center gap-2 ${fullWidth ? "w-full" : ""}`}>
+      <div className={fullWidth ? "flex items-stretch w-full" : "flex items-center gap-2"}>
         {showPreview && (
           <div
             className="w-10 h-10 rounded border border-[#444]"
