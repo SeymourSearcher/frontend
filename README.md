@@ -45,9 +45,12 @@ npm run dev                         # http://localhost:3000
 | Command | Does |
 |---|---|
 | `npm run dev` | Development server with hot reload |
-| `npm run build` | Production build |
+| `npm run build` | Production build, then a route check that fails if the built routes differ from `scripts/routes.mjs` |
 | `npm start` | Serve the production build |
+| `npm run smoke -- <url>` | Request every route in `scripts/routes.mjs` against a running site, failing on any non-200 |
 | `npm run lint` | ESLint |
+
+Adding or removing a page means updating `scripts/routes.mjs`, or the build fails. Run the smoke test against production after each deploy.
 
 ## Project layout
 

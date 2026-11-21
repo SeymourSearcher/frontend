@@ -13,6 +13,8 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postbuild": "node scripts/check-routes.mjs",
+    "smoke": "node scripts/smoke.mjs",
     "start": "next start",
     "lint": "eslint"
   },
