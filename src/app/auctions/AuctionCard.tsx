@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { ActiveAuction, EndedAuction } from "@/types/auction";
 import { TIER_COLORS } from "./constants";
 import { formatPrice, formatTimestamp, formatTimeUntil } from "@/lib/format";
@@ -37,7 +38,11 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
   const endedAuction = auction as EndedAuction;
 
   return (
-    <div className="bg-[#1a1a1a] rounded-lg p-4 hover:bg-[#252525] transition-colors flex flex-col h-full">
+    <Link
+      href={`/hex/${auction.hex_color}`}
+      prefetch={false}
+      className="bg-[#1a1a1a] rounded-lg p-4 hover:bg-[#252525] transition-colors flex flex-col h-full no-underline"
+    >
       <div className="flex items-start gap-3 flex-1">
         <MinecraftItem piece={auction.piece} hex={auction.hex_color} scale={3} />
         <div className="flex flex-col min-w-0 flex-1">
@@ -98,6 +103,6 @@ export default function AuctionCard({ auction, isEnded = false }: AuctionCardPro
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

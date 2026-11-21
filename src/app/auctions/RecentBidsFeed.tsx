@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { RecentBid } from "@/types/auction";
 import { formatPrice, formatTimestamp } from "@/lib/format";
 import { PIECE_SLOT_NAMES } from "@/lib/pieces";
@@ -7,9 +8,13 @@ import { MinecraftItem } from "@/components/ui/MinecraftItem";
 
 function BidRow({ bid }: { bid: RecentBid }) {
   return (
-    <div className="flex items-center gap-3 py-3 px-4 hover:bg-[#1f1f1f] transition-colors border-b border-[#2a2a2a] last:border-b-0">
+    <Link
+      href={`/hex/${bid.hex_color}`}
+      prefetch={false}
+      className="flex items-center gap-3 py-3 px-4 hover:bg-[#1f1f1f] transition-colors border-b border-[#2a2a2a] last:border-b-0 no-underline"
+    >
       <MinecraftItem piece={bid.piece} hex={bid.hex_color} scale={2} />
-      
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="text-[12px] font-medium" style={{ color: `#${bid.hex_color}` }}>
@@ -29,11 +34,11 @@ function BidRow({ bid }: { bid: RecentBid }) {
           <span className="text-[#4ade80] font-medium">{formatPrice(bid.amount)}</span>
         </div>
       </div>
-      
+
       <div className="text-[10px] text-[#555]">
         {formatTimestamp(bid.timestamp)}
       </div>
-    </div>
+    </Link>
   );
 }
 
